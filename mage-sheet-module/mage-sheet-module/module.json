@@ -1,0 +1,40 @@
+{
+  "id": "mage-sheet-module",
+  "title": "Mage Sheet Module (WoD5e)",
+  "description": "Adiciona o tipo de Ator 'Mago' (baseado em Mago: A Ascensão) e sua respectiva ficha ao sistema WoD5e.",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "authors": [
+    { "name": "Rob Sammore" }
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "vtm5e",
+        "type": "system",
+        "compatibility": {}
+      }
+    ]
+  },
+  "esmodules": [
+    "mage-sheet-module.js"
+  ],
+  "styles": [
+    "templates/styling/mage-styling.less"
+  ],
+  "languages": [
+    {
+      "lang": "pt-BR",
+      "name": "Português (Brasil)",
+      "path": "lang/pt-BR/mage-pt-BR.json"
+    },
+    {
+      "lang": "en-US",
+      "name": "English (US)",
+      "path": "lang/en-US/mage-en-US.json"
+    }
+  ]
+}

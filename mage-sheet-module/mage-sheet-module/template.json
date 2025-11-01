@@ -1,0 +1,48 @@
+{
+  "Actor": {
+    "types": [
+      "mage"
+    ],
+    "mage": {
+      "templates": ["base"],
+      "tabs": {
+        "stats": true,
+        "spheres": true,
+        "equipment": true,
+        "features": true,
+        "biography": true,
+        "experience": true,
+        "notepad": true,
+        "settings": true
+      },
+      "arete": {
+        "potency": 0
+      },
+      "paradox": {
+        "value": 0,
+        "max": 10
+      },
+      "quintessence": {
+        "value": 0,
+        "max": 10
+      },
+      "wisdom": {
+        "value": 7,
+        "stains": 0
+      },
+      "frenzyActive": false,
+      "spheres": {
+        "correspondence": { "value": 0 },
+        "entropy": { "value": 0 },
+        "forces": { "value": 0 },
+        "life": { "value": 0 },
+        "matter": { "value": 0 },
+        "mind": { "value": 0 },
+        "prime": { "value": 0 },
+        "spirit": { "value": 0 },
+        "time": { "value": 0 }
+      }
+    }
+  },
+  "Item": {}
+}

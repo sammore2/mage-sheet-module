@@ -1,0 +1,40 @@
+{
+  "WOD5E": {
+    "MTA": {
+      "MageSheet": "Ficha de Mago (MTA)",
+      "Spheres": "Esferas",
+      "AllSpheres": "Todas as Esferas",
+      "Arete": "Arete",
+      "Paradox": "Paradoxo",
+      "Quintessence": "Quintessência",
+      "Wisdom": "Sabedoria",
+      
+      "RoteBonus": "Bônus de Roteiro",
+      "MaxSphere": "Esfera Máxima",
+      "ParadoxDice": "Dados de Paradoxo",
+      "ParadoxLimit": "Limite de Paradoxo",
+      "QuintessencePool": "Reserva de Quintessência",
+
+      "Correspondence": "Correspondência",
+      "Entropy": "Entropia",
+      "Forces": "Forças",
+      "Life": "Vida",
+      "Matter": "Matéria",
+      "Mind": "Mente",
+      "Prime": "Prima",
+      "Spirit": "Espírito",
+      "Time": "Tempo",
+
+      "AddSphere": "Adicionar Esfera",
+      "SelectSphere": "Selecionar Esfera",
+
+      "ParadoxCheck": "Teste de Paradoxo",
+      "RollingWisdom": "Rolando Sabedoria",
+      
+      "ParadoxBacklash": "Reação de Paradoxo",
+      "BacklashChoiceResist": "Você está sofrendo uma Reação de Paradoxo. Você tenta resistir ou se entrega?",
+      "GiveIn": "Se Entregar",
+      "ResistingBacklash": "Resistindo à Reação de Paradoxo"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{{!-- ESTE TEMPLATE SUBSTITUI O blood.hbs (aba de recursos de Vampiro) --}}
+<section class="tab {{tab.cssClass}}" data-tab="arete" data-group="primary">
+    {{!-- Utilizamos a classe "wod5e-actor-blood" para herdar o estilo de colunas e fonte --}}
+    <div class="wod5e-actor-blood">
+        <div class="blood-sections">
+
+            {{!-- 1. NÍVEL DE ARETE (Substitui Potência de Sangue) --}}
+            <section class="section-group">
+                <div class="section-header">
+                    <h2 class="section-title">{{localize 'WOD5E.Mage.Arete'}}</h2>
+                </div>
+                <div class="resource">
+                    {{!-- Aqui você pode usar um campo input simples para o nível de Arete --}}
+                    <input type="text" name="system.arete.value" value="{{arete.value}}" data-dtype="Number" placeholder="1"/>
+                </div>
+            </section>
+            
+            {{!-- 2. PARADOXO (Substitui o Hunger no contexto desta aba) --}}
+            <section class="section-group paradox-section">
+                <div class="section-header">
+                    <h2 class="section-title">{{localize 'WOD5E.Mage.Paradox'}}</h2>
+                </div>
+                
+                {{!-- Reutiliza o template de Contagem de Sede (Hunger) para o Paradoxo. --}}
+                {{> "modules/mage-sheet-module/templates/actors/parts/paradox.hbs"}}
+                
+                {{!-- Adiciona o botão de ação (Imbuir) no layout de Rouse --}}
+                {{> "modules/mage-sheet-module/templates/actors/parts/rouse.hbs"}}
+
+                {{!-- Adicionar aqui a descrição/efeitos do Paradoxo --}}
+                <div class="paradox-rules-display">
+                    <label>{{localize "WOD5E.Mage.ParadoxRulesTitle"}}</label>
+                    <textarea name="system.paradox.rules" rows="5">{{paradox.rules}}</textarea>
+                </div>
+            </section>
+            
+            {{!-- 3. TRADIÇÃO/AFILIAÇÃO (Substitui o campo de Clã, mas na aba de recursos) --}}
+            <section class="section-group affiliation-section">
+                <div class="section-header">
+                    <h2 class="section-title">{{localize 'WOD5E.Mage.Tradition'}}</h2>
+                </div>
+                <div class="resource">
+                    <input type="text" name="system.headers.tradition" value="{{headers.tradition}}" data-dtype="String" placeholder="{{localize 'WOD5E.Mage.TraditionPlaceholder'}}"/>
+                </div>
+            </section>
+            
+        </div>
+    </div>
+</section>
