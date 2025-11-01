@@ -1,20 +1,5 @@
 /* global foundry, game */
-
-// --- 1. IMPORTAÇÕES GLOBAIS (Corrigido) ---
-const { WoDActor } = game.wod5e
-const { HandlebarsApplicationMixin } = foundry.applications.api
-const {
-  prepareBiographyContext,
-  prepareExperienceContext,
-  prepareFeaturesContext,
-  prepareEquipmentContext,
-  prepareNotepadContext,
-  prepareSettingsContext,
-  prepareStatsContext,
-  prepareLimitedContext
-} = game.wod5e.api
-
-// --- 2. IMPORTAÇÕES LOCAIS (AGORA 100% CORRETAS) ---
+import { prepareBiographyContext, prepareExperienceContext, prepareFeaturesContext, prepareEquipmentContext, prepareNotepadContext, prepareSettingsContext, prepareStatsContext, prepareLimitedContext } from 'systems/vtm5e/system/actor/scripts/prepare-partials.js'
 import { prepareSpheresContext, prepareAreteContext } from './scripts/prepare-partials.js'
 import { _onAddSphere, _onSphereToChat, _onRemoveSphere, _onSelectSphere, _onSelectSpherePower } from './scripts/spheres.js'
 
@@ -49,9 +34,109 @@ export class MageActorSheet extends HandlebarsApplicationMixin(WoDActor) {
     }
   }
 
-  /** @override */
+  /** @override 
   get template () {
     return 'modules/mage-sheet-module/display/actors/mage-sheet.hbs'
+  }
+*/
+
+  static PARTS = {
+    header: {
+      template: 'modules/mage-sheet-module/display/actors/mage-sheet.hbs'
+    },
+    tabs: {
+      template: 'systems/vtm5e/display/shared/actors/parts/tab-navigation.hbs'
+    },
+    stats: {
+      template: 'systems/vtm5e/display/shared/actors/parts/stats.hbs'
+    },
+    experience: {
+      template: 'systems/vtm5e/display/shared/actors/parts/experience.hbs'
+    },
+    spheres: {
+      template: 'modules/mage-sheet-module/display/actors/spheres.hbs'
+    },
+    arete: {
+      template: 'modules/mage-sheet-module/display/actors/arete.hbs'
+    },
+    features: {
+      template: 'systems/vtm5e/display/shared/actors/parts/features.hbs'
+    },
+    equipment: {
+      template: 'systems/vtm5e/display/shared/actors/parts/equipment.hbs'
+    },
+    biography: {
+      template: 'systems/vtm5e/display/shared/actors/parts/biography.hbs'
+    },
+    notepad: {
+      template: 'systems/vtm5e/display/shared/actors/parts/notepad.hbs'
+    },
+    settings: {
+      template: 'systems/vtm5e/display/shared/actors/parts/actor-settings.hbs'
+    },
+    banner: {
+      template: 'systems/vtm5e/display/shared/actors/parts/type-banner.hbs'
+    },
+    limited: {
+      template: 'systems/vtm5e/display/shared/actors/limited-sheet.hbs'
+    }
+  }
+
+  tabs = {
+    stats: {
+      id: 'stats',
+      group: 'primary',
+      title: 'WOD5E.Tabs.Stats',
+      icon: '<i class="fa-regular fa-chart-line"></i>'
+    },
+    experience: {
+      id: 'experience',
+      group: 'primary',
+      title: 'WOD5E.Tabs.Experience',
+      icon: '<i class="fa-solid fa-file-contract"></i>'
+    },
+    spheres: {
+      id: 'spheres',
+      group: 'primary',
+      title: 'WOD5E.MTA.Spheres
+      icon: '<span class="wod5e-symbol">b</span>'
+    },
+    arete: {
+      id: 'arete',
+      group: 'primary',
+      title: 'WOD5E.MTA.Arete',
+      icon: '<i class="fa-solid fa-droplet"></i>'
+    },
+    features: {
+      id: 'features',
+      group: 'primary',
+      title: 'WOD5E.Tabs.Features',
+      icon: '<i class="fas fa-gem"></i>'
+    },
+    equipment: {
+      id: 'equipment',
+      group: 'primary',
+      title: 'WOD5E.Tabs.Equipment',
+      icon: '<i class="fa-solid fa-toolbox"></i>'
+    },
+    biography: {
+      id: 'biography',
+      group: 'primary',
+      title: 'WOD5E.Tabs.Biography',
+      icon: '<i class="fas fa-id-card"></i>'
+    },
+    notepad: {
+      id: 'notepad',
+      group: 'primary',
+      title: 'WOD5E.Tabs.Notes',
+      icon: '<i class="fas fa-sticky-note"></i>'
+    },
+    settings: {
+      id: 'settings',
+      group: 'primary',
+      title: 'WOD5E.Tabs.Settings',
+      icon: '<i class="fa-solid fa-gears"></i>'
+    }
   }
 
   /** @override */
