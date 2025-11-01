@@ -1,6 +1,20 @@
 /* global foundry, game */
-import { prepareBiographyContext, prepareExperienceContext, prepareFeaturesContext, prepareEquipmentContext, prepareNotepadContext, prepareSettingsContext, prepareStatsContext, prepareLimitedContext } from 'systems/vtm5e/system/actor/scripts/prepare-partials.js'
-import { prepareSpheresContext, prepareAreteContext } from './scripts/prepare-partials.js'
+
+// --- 1. IMPORTAÇÕES GLOBAIS (CAMINHOS CORRIGIDOS) ---
+// Adicionada a barra '/' no início para ser um caminho absoluto
+import { 
+  prepareBiographyContext, 
+  prepareExperienceContext, 
+  prepareFeaturesContext, 
+  prepareEquipmentContext, 
+  prepareNotepadContext, 
+  prepareSettingsContext, 
+  prepareStatsContext, 
+  prepareLimitedContext 
+} from '/systems/vtm5e/system/actor/scripts/prepare-partials.js' //
+
+// --- 2. IMPORTAÇÕES LOCAIS (Suas importações, intactas) ---
+import { prepareSpheresContext, prepareAreteContext } from './scripts/prepare-partials.js' //
 import { _onAddSphere, _onSphereToChat, _onRemoveSphere, _onSelectSphere, _onSelectSpherePower } from './scripts/spheres.js'
 
 // Importando os NOVOS nomes de arquivo e função
@@ -11,11 +25,20 @@ import { _onWisdomRoll } from './scripts/wisdom-roll.js'
 // Importando a mecânica de rolagem de Paradoxo
 import { _onParadoxCheck } from './scripts/paradox-roll.js'
 
+// --- 3. IMPORTAÇÃO DA CLASSE BASE (ADICIONADA) ---
+// Esta importação estava faltando, o que causava o erro
+import { WoDActor } from '/systems/vtm5e/system/actor/wod-actor-base.js' //
+
+// Mixin padrão do Foundry (Seu código, intacto)
+const { HandlebarsApplicationMixin } = foundry.applications.api
+
 /**
  * Extend the WoDActor document
  * @extends {WoDActor}
  */
+// Agora 'WoDActor' está definido e esta linha funciona
 export class MageActorSheet extends HandlebarsApplicationMixin(WoDActor) {
+  // (Seu código, intacto)
   static DEFAULT_OPTIONS = {
     classes: ['wod5e', 'actor', 'sheet', 'mage'],
     actions: {
@@ -27,61 +50,74 @@ export class MageActorSheet extends HandlebarsApplicationMixin(WoDActor) {
       selectSpherePower: _onSelectSpherePower,
 
       // --- AÇÕES COM NOME CORRETO ---
-      // (O 'data-action' no seu .hbs deve bater com estes nomes)
       rollWisdom: _onWisdomRoll,
       resistBacklash: _onParadoxBacklash,
       endBacklash: _onEndParadoxBacklash
     }
   }
 
-  /** @override 
-  get template () {
-    return 'modules/mage-sheet-module/display/actors/mage-sheet.hbs'
-  }
-*/
-
+  //
+  // --- SEU CÓDIGO 'STATIC PARTS' (ADICIONADO E CORRIGIDO) ---
+  // (Isto estava faltando, e os caminhos foram corrigidos)
+  //
   static PARTS = {
     header: {
-      template: 'modules/mage-sheet-module/display/actors/mage-sheet.hbs'
+      // Corrigido para 'templates/' (sua estrutura) e 'mage-sheet.hbs'
+      template: 'modules/mage-sheet-module/templates/actors/mage-sheet.hbs' //
     },
     tabs: {
-      template: 'systems/vtm5e/display/shared/actors/parts/tab-navigation.hbs'
+      // Corrigido para caminho absoluto do sistema
+      template: '/systems/vtm5e/display/shared/actors/parts/tab-navigation.hbs' //
     },
     stats: {
-      template: 'systems/vtm5e/display/shared/actors/parts/stats.hbs'
+      // Corrigido para caminho absoluto do sistema
+      template: '/systems/vtm5e/display/shared/actors/parts/stats.hbs' //
     },
     experience: {
-      template: 'systems/vtm5e/display/shared/actors/parts/experience.hbs'
+      // Corrigido para caminho absoluto do sistema
+      template: '/systems/vtm5e/display/shared/actors/parts/experience.hbs' //
     },
     spheres: {
-      template: 'modules/mage-sheet-module/display/actors/spheres.hbs'
+      // Corrigido para 'templates/' (sua estrutura)
+      template: 'modules/mage-sheet-module/templates/actors/parts/spheres.hbs' //
     },
     arete: {
-      template: 'modules/mage-sheet-module/display/actors/arete.hbs'
+      // Corrigido para 'templates/' (sua estrutura)
+      template: 'modules/mage-sheet-module/templates/actors/parts/arete.hbs' //
     },
     features: {
-      template: 'systems/vtm5e/display/shared/actors/parts/features.hbs'
+      // Corrigido para caminho absoluto do sistema
+      template: '/systems/vtm5e/display/shared/actors/parts/features.hbs' //
     },
     equipment: {
-      template: 'systems/vtm5e/display/shared/actors/parts/equipment.hbs'
+      // Corrigido para caminho absoluto do sistema
+      template: '/systems/vtm5e/display/shared/actors/parts/equipment.hbs' //
     },
     biography: {
-      template: 'systems/vtm5e/display/shared/actors/parts/biography.hbs'
+      // Corrigido para caminho absoluto do sistema
+      template: '/systems/vtm5e/display/shared/actors/parts/biography.hbs' //
     },
     notepad: {
-      template: 'systems/vtm5e/display/shared/actors/parts/notepad.hbs'
+      // Corrigido para caminho absoluto do sistema
+      template: '/systems/vtm5e/display/shared/actors/parts/notepad.hbs' //
     },
     settings: {
-      template: 'systems/vtm5e/display/shared/actors/parts/actor-settings.hbs'
+      // Corrigido para caminho absoluto do sistema
+      template: '/systems/vtm5e/display/shared/actors/parts/actor-settings.hbs' //
     },
     banner: {
-      template: 'systems/vtm5e/display/shared/actors/parts/type-banner.hbs'
+      // Corrigido para caminho absoluto do sistema
+      template: '/systems/vtm5e/display/shared/actors/parts/type-banner.hbs' //
     },
     limited: {
-      template: 'systems/vtm5e/display/shared/actors/limited-sheet.hbs'
+      // Corrigido para caminho absoluto do sistema
+      template: '/systems/vtm5e/display/shared/actors/limited-sheet.hbs' //
     }
   }
 
+  //
+  // --- SEU CÓDIGO 'tabs' (ADICIONADO E INTACTO) ---
+  //
   tabs = {
     stats: {
       id: 'stats',
@@ -98,7 +134,7 @@ export class MageActorSheet extends HandlebarsApplicationMixin(WoDActor) {
     spheres: {
       id: 'spheres',
       group: 'primary',
-      title: 'WOD5E.MTA.Spheres
+      title: 'WOD5E.MTA.Spheres', // (Corrigi a quebra de linha)
       icon: '<span class="wod5e-symbol">b</span>'
     },
     arete: {
@@ -140,6 +176,13 @@ export class MageActorSheet extends HandlebarsApplicationMixin(WoDActor) {
   }
 
   /** @override */
+  // (Seu código, intacto, mas corrigi o caminho para 'templates/')
+  get template () {
+    return 'modules/mage-sheet-module/templates/actors/mage-sheet.hbs' //
+  }
+
+  /** @override */
+  // (Seu código, intacto)
   async _prepareContext (options) {
     // ... (Esta função que te mandei antes está correta) ...
     const context = await super._prepareContext(options)
@@ -159,6 +202,7 @@ export class MageActorSheet extends HandlebarsApplicationMixin(WoDActor) {
   }
 
   /** @override */
+  // (Seu código, intacto)
   async _preparePartContext (partId, context, options) {
     // ... (Esta função que te mandei antes está correta) ...
     context = { ...(await super._preparePartContext(partId, context, options)) }
@@ -185,15 +229,15 @@ export class MageActorSheet extends HandlebarsApplicationMixin(WoDActor) {
 
       // Suas Abas Customizadas
       case 'spheres':
-        return prepareSpheresContext(context, actor)
+        return prepareSpheresContext(context, actor) //
       case 'arete':
-        return prepareAreteContext(context, actor)
+        return prepareAreteContext(context, actor) //
     }
 
     return context
   }
 
-  // --- A "PONTE" (Correta) ---
+  // --- A "PONTE" (Seu código, intacto) ---
   /**
    * Intercepta a chamada de "Rouse Check" do sistema e
    * a redireciona para o nosso "Paradox Check".
