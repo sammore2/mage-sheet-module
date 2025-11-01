@@ -4,6 +4,7 @@
       "mage"
     ],
     "mage": {
+      "templates": ["base"],
       "tabs": {
         "stats": true,
         "spheres": true,

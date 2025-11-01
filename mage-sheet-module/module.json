@@ -1,7 +1,7 @@
 {
   "id": "mage-sheet-module",
   "title": "Mage Sheet Module (WoD5e)",
-  "description": "Adiciona a 'Ficha de Mago (Custom)' como uma opção para Atores do tipo Mortal no sistema WoD5e.",
+  "description": "Adiciona o tipo de Ator 'Mago' (baseado em Mago: A Ascensão) e sua respectiva ficha ao sistema WoD5e.",
   "version": "1.0.0",
   "compatibility": {
     "minimum": "13",
@@ -22,7 +22,9 @@
   "esmodules": [
     "mage-sheet-module.js"
   ],
-  "styles": [],
+  "styles": [
+    "templates/styling/mage-styling.less"
+  ],
   "languages": [
     {
       "lang": "pt-BR",
