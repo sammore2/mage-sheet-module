@@ -1,44 +1,49 @@
-/* global game */
+// ===============================================
+// Mage Sheet Module - Definições das Esferas
+// ===============================================
+export class Spheres {
+  static _initializeDefinitions() {
+    console.log("Mage Sheet Module | Inicializando definições das Esferas");
 
-// Este arquivo define o que são as Esferas de Mago.
-// Diferente do sistema 'wod5e', não podemos "estender" a "BaseDefinitionClass"
-// porque ela não é exportada para módulos.
-//
-// Então, vamos criar um objeto simples que tem o método 'getList()'
-// que o seu script 'prepare-data.js' espera.
-
-export const Spheres = {
-  // A função que o 'prepare-data.js' chama
-  getList: (options = {}) => {
-    // Retorna a lista de todas as 9 Esferas
-    return {
-      correspondence: {
-        name: game.i18n.localize('WOD5E.MTA.Correspondence') // (Adicione em lang/pt-BR.json)
-      },
-      entropy: {
-        name: game.i18n.localize('WOD5E.MTA.Entropy')
-      },
+    // 🔮 Defina aqui as Esferas que existirão no jogo
+    // Isso é um exemplo, adapte à sua estrutura
+    this.definitions = {
       forces: {
-        name: game.i18n.localize('WOD5E.MTA.Forces')
+        label: "Forces",
+        description: "Manipulação de energia, movimento e física."
       },
       life: {
-        name: game.i18n.localize('WOD5E.MTA.Life')
-      },
-      matter: {
-        name: game.i18n.localize('WOD5E.MTA.Matter')
+        label: "Life",
+        description: "Controle sobre seres vivos e biologia."
       },
       mind: {
-        name: game.i18n.localize('WOD5E.MTA.Mind')
+        label: "Mind",
+        description: "Percepção, pensamento e consciência."
       },
-      prime: {
-        name: game.i18n.localize('WOD5E.MTA.Prime')
+      matter: {
+        label: "Matter",
+        description: "Controle sobre substâncias e objetos físicos."
       },
       spirit: {
-        name: game.i18n.localize('WOD5E.MTA.Spirit')
+        label: "Spirit",
+        description: "Comunicação e influência nos mundos espirituais."
+      },
+      correspondence: {
+        label: "Correspondence",
+        description: "Compreensão do espaço e da conexão entre locais."
+      },
+      entropy: {
+        label: "Entropy",
+        description: "Probabilidade, sorte e decadência."
       },
       time: {
-        name: game.i18n.localize('WOD5E.MTA.Time')
+        label: "Time",
+        description: "Manipulação da passagem do tempo e premonição."
+      },
+      prime: {
+        label: "Prime",
+        description: "Energia primordial e essência mágica."
       }
-    }
+    };
   }
 }
