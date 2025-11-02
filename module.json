@@ -29,7 +29,7 @@
     "scripts/actor/mta/mage-actor-sheet.js"
   ],
   "styles": [
-    "styles/mage-styling.css"
+    "templates/styling/mage-styling.less"
   ],
   "languages": [
     {
