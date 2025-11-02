@@ -1,39 +1,22 @@
-// Importa a classe da sua ficha de Mago (o caminho vem do seu module.json)
-import { MageActorSheet } from '../actor/mta/mage-actor-sheet.js'
-
 /* -------------------------------------------- */
 /* HOOK: INIT (INJEÇÃO DE DADOS)               */
 /* -------------------------------------------- */
 
 Hooks.once('init', async function () {
-  console.log('Mage: The Ascension 5e | Inicializando dados customizados.')
+  console.log('Mage: The Ascension 5e | 1. Injetando dados e tipos de item.')
 
-  // 1. Definir os dados que vamos injetar (BASEADO NA SUA ESTRUTURA)
+  // --- 1. INJEÇÃO DE DADOS ---
+  // CORREÇÃO: Usar CONFIG.wod5e.template (o caminho correto do sistema vtm5e)
+  const actorTemplate = CONFIG.wod5e.template.Actor
+  const itemTemplate = CONFIG.wod5e.template.Item
+
   const mageDataInjection = {
-    // Flag para sabermos que este mortal é um Mago
     isMage: false,
-
-    // Traços de Mago
-    // (Ajustei 'arete.potency' para 'arete.value' para seguir o padrão do vtm5e)
-    arete: {
-      value: 1,
-      max: 10
-    },
-    paradox: {
-      value: 0,
-      max: 10
-    },
-    quintessence: {
-      value: 0,
-      max: 10
-    },
-    wisdom: {
-      value: 7,
-      stains: 0
-    },
-    frenzyActive: false, // Para o Backlash do Paradoxo
-
-    // Esferas (Exatamente como você definiu, com 9 esferas)
+    arete: { value: 1, max: 10 },
+    paradox: { value: 0, max: 10 },
+    quintessence: { value: 0, max: 10 },
+    wisdom: { value: 7, stains: 0 },
+    frenzyActive: false,
     spheres: {
       correspondence: { value: 0, powers: [], visible: false },
       entropy: { value: 0, powers: [], visible: false },
@@ -46,47 +29,211 @@ Hooks.once('init', async function () {
       time: { value: 0, powers: [], visible: false }
     }
   }
+  
+  // CORREÇÃO: Usar foundry.utils.mergeObject (padrão V12+)
+  foundry.utils.mergeObject(actorTemplate.mortal, mageDataInjection)
 
-  // 2. Injetar os dados no template do Ator 'mortal' do sistema vtm5e
-  mergeObject(game.system.template.Actor.mortal, mageDataInjection)
-
-  // 3. Definir novos tipos de Itens
-  const itemTemplate = game.system.template.Item
-
-  // Novo tipo 'rote' (clonado de 'power')
+  // --- 2. REGISTRO DE ITENS ---
+  // CORREÇÃO: Usar o caminho correto (itemTemplate.types)
   itemTemplate.types.push('rote')
   itemTemplate.rote = foundry.utils.deepClone(itemTemplate.power)
-  mergeObject(itemTemplate.rote, {
-    gamesystem: 'mage',
-    arcana: '', // Campo customizado para a Arcana principal
-    paradoxCost: 0
-  })
-  CONFIG.Item.typeLabels.rote = 'MTA.Rote' // Label de tradução
+  foundry.utils.mergeObject(itemTemplate.rote, { gamesystem: 'mage', arcana: '', paradoxCost: 0 })
+  CONFIG.Item.typeLabels.rote = 'MTA.Rote'
 
-  // Novo tipo 'focus' (clonado de 'feature')
   itemTemplate.types.push('focus')
   itemTemplate.focus = foundry.utils.deepClone(itemTemplate.feature)
-  mergeObject(itemTemplate.focus, {
-    gamesystem: 'mage',
-    featuretype: 'focus'
-  })
+  foundry.utils.mergeObject(itemTemplate.focus, { gamesystem: 'mage', featuretype: 'focus' })
   CONFIG.Item.typeLabels.focus = 'MTA.Focus'
 })
 
 /* -------------------------------------------- */
-/* HOOK: READY (SUBSTITUIÇÃO DA FICHA)         */
+/* HOOK: READY (DEFINIÇÃO DE CLASSES E REGISTRO) */
 /* -------------------------------------------- */
 
 Hooks.once('ready', async function () {
-  console.log('Mage: The Ascension 5e | Registrando folha de personagem customizada.')
+  console.log('Mage: The Ascension 5e | 2. Definindo classes e registrando a ficha.')
 
-  // Desregistra a folha de Mortal padrão do sistema vtm5e
+  // --- 1. DEFINIÇÃO DAS CLASSES ---
+  // Agora é seguro estender as classes do vtm5e!
+
+  /**
+   * MageRoll
+   * Estende a RollFormula base para usar Paradoxo.
+   */
+  class MageRoll extends game.vtm5e.RollFormula {
+    _prepareData (rollData) {
+      super._prepareData(rollData)
+      const paradoxDice = Math.max(0, this.hungerDice)
+      this.dice = this.dice.slice(paradoxDice)
+      const paradox = this.dice.slice(0, paradoxDice)
+      const normalSuccesses = this.dice.filter(d => d.success).length
+      const normalCrits = this.dice.filter(d => d.critical).length
+      const paradoxSuccesses = paradox.filter(d => d.success).length
+      const paradoxCrits = paradox.filter(d => d.critical).length
+      const paradoxFailures = paradox.filter(d => d.failure).length
+      this.successes = normalSuccesses + (normalCrits * 2) + paradoxSuccesses + (paradoxCrits * 2)
+
+      if (paradoxFailures > 0) {
+        this.outcome = 'bestial'
+        this.outcomeLabel = game.i18n.localize('MTA.Backlash')
+      } else if (this.successes === 0) {
+        this.outcome = 'failure'
+        this.outcomeLabel = game.i18n.localize('WOD5E.Chat.Failure')
+      } else if (normalCrits > 0 || paradoxCrits > 0) {
+        this.outcome = 'critical'
+        this.outcomeLabel = game.i18n.localize('WOD5E.Chat.CriticalSuccess')
+      } else {
+        this.outcome = 'success'
+        this.outcomeLabel = game.i18n.localize('WOD5E.Chat.Success')
+      }
+      this.rollResults = {
+        normal: { rolls: this.dice, icon: this.rollIcons.normal },
+        paradox: { rolls: paradox, icon: this.rollIcons.hunger } // Reutiliza o ícone de fome
+      }
+    }
+  }
+
+  /**
+   * MageRollDialog
+   * CORREÇÃO: Estende VampireRollDialog para reutilizar a lógica de "hunger" (fome).
+   */
+  class MageRollDialog extends game.vtm5e.VampireRollDialog {
+    static get defaultOptions () {
+      return foundry.utils.mergeObject(super.defaultOptions, {
+        template: 'modules/mage-sheet-module/templates/ui/mage-roll-dialog.hbs'
+      })
+    }
+    async getData () {
+      const data = await super.getData()
+      // Sobrescreve "hunger" (fome) por "paradox" (paradoxo)
+      data.hungerValue = this.actor.system.paradox.value
+      data.hungerLabel = game.i18n.localize('MTA.Paradox')
+      data.hungerDiceIcon = 'assets/icons/dialog/vampire-dice.png' // Mude o ícone se quiser
+      return data
+    }
+    _onRoll (event) {
+      event.preventDefault()
+      const form = event.currentTarget.closest('form')
+      const combinedPool = parseInt(form.pool1.value) + parseInt(form.pool2.value)
+      const rollData = {
+        actor: this.actor,
+        pool: combinedPool,
+        difficulty: parseInt(form.difficulty.value),
+        hungerDice: parseInt(form.hunger_dice.value), // O hbs ainda chama de 'hunger_dice'
+        rollType: 'mage',
+        rollMode: form.rollMode.value,
+        modifiers: this.modifiers
+      }
+      const roll = new MageRoll(rollData) // Usa nossa classe MageRoll
+      roll.toMessage()
+      this.close()
+    }
+  }
+
+  /**
+   * MageActorSheet
+   * Estende a MortalActorSheet base.
+   */
+  class MageActorSheet extends game.vtm5e.MortalActorSheet {
+    static get defaultOptions () {
+      return foundry.utils.mergeObject(super.defaultOptions, {
+        classes: ['vtm5e', 'sheet', 'actor', 'mage'],
+        template: 'modules/mage-sheet-module/templates/actors/mage-sheet.hbs',
+        tabs: [{ navSelector: '.sheet-tabs', contentSelector: '.sheet-body', initial: 'stats' }]
+      })
+    }
+
+    async getData () {
+      const data = await super.getData()
+      this._prepareMageData(data.actor)
+      data.actor.system.tabs = {
+        stats: true,
+        spheres: true,
+        equipment: true,
+        features: true,
+        biography: true,
+        experience: true,
+        notepad: true,
+        settings: true
+      }
+      return data
+    }
+
+    _prepareMageData (actorData) {
+      const system = actorData.system
+      system.sortedSpheres = Object.entries(system.spheres).map(([key, sphere]) => {
+        return {
+          key: key,
+          label: game.i18n.localize(`MTA.Sphere.${key}`),
+          ...sphere
+        }
+      })
+    }
+
+    activateListeners (html) {
+      super.activateListeners(html)
+      if (this.actor.system.locked) return
+      html.find('.roll-arete').click(this._onRollArete.bind(this))
+      html.find('.roll-paradox').click(this._onRollParadox.bind(this))
+      html.find('.roll-wisdom').click(this._onRollWisdom.bind(this))
+    }
+
+    async _onRollArete (event) {
+      event.preventDefault()
+      const sphereOptions = this.actor.system.sortedSpheres.map(s => ({
+        key: s.key,
+        label: s.label,
+        value: s.value
+      }))
+      sphereOptions.unshift({
+        key: 'none',
+        label: game.i18n.localize('WOD5E.None'),
+        value: 0
+      })
+      const dialog = new MageRollDialog({ // Usa nossa classe MageRollDialog
+        actor: this.actor,
+        title: game.i18n.localize('MTA.Roll.Arete'),
+        pool1: { label: game.i18n.localize('MTA.Arete'), value: this.actor.system.arete.value },
+        pool2: { label: game.i18n.localize('MTA.Sphere'), hasSelect: true, options: sphereOptions }
+      })
+      dialog.render(true)
+    }
+
+    async _onRollWisdom (event) {
+      event.preventDefault()
+      const system = this.actor.system
+      const remainingWisdom = system.wisdom.value - system.wisdom.stains
+      const roll = new game.vtm5e.RollFormula({
+        actor: this.actor,
+        pool: remainingWisdom,
+        difficulty: 1,
+        rollType: 'remorse',
+        title: game.i18n.localize('MTA.Roll.Wisdom')
+      })
+      await roll.toMessage()
+      this.actor.update({ 'system.wisdom.stains': 0 })
+    }
+
+    async _onRollParadox (event) {
+      event.preventDefault()
+      const system = this.actor.system
+      const paradox = system.paradox.value
+      const roll = new game.vtm5e.RollFormula({
+        actor: this.actor,
+        pool: paradox,
+        difficulty: 1,
+        rollType: 'frenzy',
+        title: game.i18n.localize('MTA.Roll.Backlash')
+      })
+      await roll.toMessage()
+    }
+  }
+
+  // --- 2. REGISTRO DA FICHA (SHEET) ---
   Actors.unregisterSheet('vtm5e', 'MortalActorSheet')
-
-  // Registra a SUA folha de Mago (MageActorSheet) como a nova folha padrão para o tipo 'mortal'
   Actors.registerSheet('vtm5e', MageActorSheet, {
-    types: ['mortal'], // Aplica-se apenas ao tipo 'mortal'
+    types: ['mortal'],
     makeDefault: true,
-    label: 'MTA.SheetTitle' // Label de tradução
+    label: 'MTA.SheetTitle'
   })
 })
