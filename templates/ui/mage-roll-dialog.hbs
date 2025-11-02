@@ -1,0 +1,18 @@
+<form class="roll-dialog-form" autocomplete="off">
+  {{!-- Inclui a base do diálogo de rolagem (reutilizado do vtm5e) --}}
+  {{> "systems/vtm5e/display/ui/parts/roll-dialog-base.hbs" title=title pool1=pool1 pool2=pool2}}
+
+  {{!-- Seção de Paradoxo (Baseado no 'hunger.hbs' do vtm5e) --}}
+  <div class="hunger-prompt">
+    <div class="hunger-icon">
+      <img src="{{hungerDiceIcon}}" alt="{{hungerLabel}}" />
+    </div>
+    <div class="hunger-text">
+      <label class="hunger-label" for="hunger_dice">{{hungerLabel}}</label>
+      <input type="number" id="hunger_dice" name="hunger_dice" value="{{hungerValue}}" min="0" max="5" />
+    </div>
+  </div>
+
+  {{!-- Inclui os modificadores e botões (reutilizado do vtm5e) --}}
+  {{> "systems/vtm5e/display/ui/parts/situational-modifiers.hbs"}}
+</form>

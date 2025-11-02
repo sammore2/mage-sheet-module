@@ -24,9 +24,10 @@
       }
     ]
   },
-   "esmodules": [
+  "esmodules": [
     "scripts/core/hooks.js",
-    "scripts/actor/mta/mage-actor-sheet.js"
+    "scripts/actor/mta/mage-actor-sheet.js",
+    "scripts/actor/mta/scripts/mage-roll.js"
   ],
   "styles": [
     "templates/styling/mage-styling.less"
