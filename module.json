@@ -2,7 +2,7 @@
   "id": "mage-sheet-module",
   "title": "Mage: The Ascension 5e (WoD 5e)",
   "description": "Adiciona a ficha de Mago: A Ascensão 5ª Edição ao sistema World of Darkness 5e (vtm5e). Requer o sistema vtm5e.",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "authors": [
     {
       "name": "sammore2",

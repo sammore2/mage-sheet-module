@@ -1,14 +1,25 @@
 /* -------------------------------------------- */
-/* HOOK: INIT (INJEÇÃO DE DADOS)               */
+/* HOOK: INIT (VAZIO DE PROPÓSITO)              */
 /* -------------------------------------------- */
 
 Hooks.once('init', async function () {
-  console.log('Mage: The Ascension 5e | 1. Injetando dados e tipos de item.')
+  console.log('Mage: The Ascension 5e | 1. Registrando hook inicial.')
+  // Deixamos o init vazio de propósito. Vamos esperar o 'ready'.
+})
 
+/* -------------------------------------------- */
+/* HOOK: READY (INJEÇÃO, CLASSES E REGISTRO)    */
+/* -------------------------------------------- */
+
+Hooks.once('ready', async function () {
+  console.log('Mage: The Ascension 5e | 2. Executando injeção de dados e registro de classes.')
+
+  // --- 1. INJEÇÃO DE DADOS ---
   // CORREÇÃO: Usar CONFIG.wod5e.template (o caminho correto do sistema vtm5e)
   const actorTemplate = CONFIG.wod5e.template.Actor
   const itemTemplate = CONFIG.wod5e.template.Item
 
+  // (Baseado no seu template.json)
   const mageDataInjection = {
     isMage: false,
     arete: { value: 1, max: 10 },
@@ -42,18 +53,14 @@ Hooks.once('init', async function () {
   itemTemplate.focus = foundry.utils.deepClone(itemTemplate.feature)
   foundry.utils.mergeObject(itemTemplate.focus, { gamesystem: 'mage', featuretype: 'focus' })
   CONFIG.Item.typeLabels.focus = 'MTA.Focus'
-})
 
-/* -------------------------------------------- */
-/* HOOK: READY (DEFINIÇÃO DE CLASSES E REGISTRO) */
-/* -------------------------------------------- */
+  // --- 3. DEFINIÇÃO DAS CLASSES ---
+  // Agora é 100% seguro estender as classes do vtm5e!
 
-Hooks.once('ready', async function () {
-  console.log('Mage: The Ascension 5e | 2. Definindo classes e registrando a ficha.')
-
-  // --- 1. DEFINIÇÃO DAS CLASSES ---
-  // Agora é seguro estender as classes do vtm5e!
-
+  /**
+   * MageRoll
+   * Estende a RollFormula base para usar Paradoxo.
+   */
   class MageRoll extends game.vtm5e.RollFormula {
     _prepareData (rollData) {
       super._prepareData(rollData)
@@ -87,7 +94,10 @@ Hooks.once('ready', async function () {
     }
   }
 
-  // CORREÇÃO: Estender VampireRollDialog para reutilizar a lógica de "hunger"
+  /**
+   * MageRollDialog
+   * CORREÇÃO: Estende VampireRollDialog para reutilizar a lógica de "hunger".
+   */
   class MageRollDialog extends game.vtm5e.VampireRollDialog {
     static get defaultOptions () {
       return foundry.utils.mergeObject(super.defaultOptions, {
@@ -98,7 +108,7 @@ Hooks.once('ready', async function () {
       const data = await super.getData()
       data.hungerValue = this.actor.system.paradox.value
       data.hungerLabel = game.i18n.localize('MTA.Paradox')
-      data.hungerDiceIcon = 'assets/icons/dialog/vampire-dice.png' // Mude se quiser
+      data.hungerDiceIcon = 'assets/icons/dialog/vampire-dice.png'
       return data
     }
     _onRoll (event) {
@@ -120,7 +130,10 @@ Hooks.once('ready', async function () {
     }
   }
 
-  // CORREÇÃO: Estender MortalActorSheet
+  /**
+   * MageActorSheet
+   * Estende a MortalActorSheet base.
+   */
   class MageActorSheet extends game.vtm5e.MortalActorSheet {
     static get defaultOptions () {
       return foundry.utils.mergeObject(super.defaultOptions, {
@@ -216,7 +229,7 @@ Hooks.once('ready', async function () {
     }
   }
 
-  // --- 2. REGISTRO DA FICHA (SHEET) ---
+  // --- 4. REGISTRO DA FICHA (SHEET) ---
   Actors.unregisterSheet('vtm5e', 'MortalActorSheet')
   Actors.registerSheet('vtm5e', MageActorSheet, {
     types: ['mortal'],
