@@ -5,7 +5,6 @@
 Hooks.once('init', async function () {
   console.log('Mage: The Ascension 5e | 1. Injetando dados e tipos de item.')
 
-  // --- 1. INJEÇÃO DE DADOS ---
   // CORREÇÃO: Usar CONFIG.wod5e.template (o caminho correto do sistema vtm5e)
   const actorTemplate = CONFIG.wod5e.template.Actor
   const itemTemplate = CONFIG.wod5e.template.Item
@@ -34,7 +33,6 @@ Hooks.once('init', async function () {
   foundry.utils.mergeObject(actorTemplate.mortal, mageDataInjection)
 
   // --- 2. REGISTRO DE ITENS ---
-  // CORREÇÃO: Usar o caminho correto (itemTemplate.types)
   itemTemplate.types.push('rote')
   itemTemplate.rote = foundry.utils.deepClone(itemTemplate.power)
   foundry.utils.mergeObject(itemTemplate.rote, { gamesystem: 'mage', arcana: '', paradoxCost: 0 })
@@ -56,10 +54,6 @@ Hooks.once('ready', async function () {
   // --- 1. DEFINIÇÃO DAS CLASSES ---
   // Agora é seguro estender as classes do vtm5e!
 
-  /**
-   * MageRoll
-   * Estende a RollFormula base para usar Paradoxo.
-   */
   class MageRoll extends game.vtm5e.RollFormula {
     _prepareData (rollData) {
       super._prepareData(rollData)
@@ -88,15 +82,12 @@ Hooks.once('ready', async function () {
       }
       this.rollResults = {
         normal: { rolls: this.dice, icon: this.rollIcons.normal },
-        paradox: { rolls: paradox, icon: this.rollIcons.hunger } // Reutiliza o ícone de fome
+        paradox: { rolls: paradox, icon: this.rollIcons.hunger }
       }
     }
   }
 
-  /**
-   * MageRollDialog
-   * CORREÇÃO: Estende VampireRollDialog para reutilizar a lógica de "hunger" (fome).
-   */
+  // CORREÇÃO: Estender VampireRollDialog para reutilizar a lógica de "hunger"
   class MageRollDialog extends game.vtm5e.VampireRollDialog {
     static get defaultOptions () {
       return foundry.utils.mergeObject(super.defaultOptions, {
@@ -105,10 +96,9 @@ Hooks.once('ready', async function () {
     }
     async getData () {
       const data = await super.getData()
-      // Sobrescreve "hunger" (fome) por "paradox" (paradoxo)
       data.hungerValue = this.actor.system.paradox.value
       data.hungerLabel = game.i18n.localize('MTA.Paradox')
-      data.hungerDiceIcon = 'assets/icons/dialog/vampire-dice.png' // Mude o ícone se quiser
+      data.hungerDiceIcon = 'assets/icons/dialog/vampire-dice.png' // Mude se quiser
       return data
     }
     _onRoll (event) {
@@ -119,21 +109,18 @@ Hooks.once('ready', async function () {
         actor: this.actor,
         pool: combinedPool,
         difficulty: parseInt(form.difficulty.value),
-        hungerDice: parseInt(form.hunger_dice.value), // O hbs ainda chama de 'hunger_dice'
+        hungerDice: parseInt(form.hunger_dice.value),
         rollType: 'mage',
         rollMode: form.rollMode.value,
         modifiers: this.modifiers
       }
-      const roll = new MageRoll(rollData) // Usa nossa classe MageRoll
+      const roll = new MageRoll(rollData)
       roll.toMessage()
       this.close()
     }
   }
 
-  /**
-   * MageActorSheet
-   * Estende a MortalActorSheet base.
-   */
+  // CORREÇÃO: Estender MortalActorSheet
   class MageActorSheet extends game.vtm5e.MortalActorSheet {
     static get defaultOptions () {
       return foundry.utils.mergeObject(super.defaultOptions, {
@@ -190,7 +177,7 @@ Hooks.once('ready', async function () {
         label: game.i18n.localize('WOD5E.None'),
         value: 0
       })
-      const dialog = new MageRollDialog({ // Usa nossa classe MageRollDialog
+      const dialog = new MageRollDialog({
         actor: this.actor,
         title: game.i18n.localize('MTA.Roll.Arete'),
         pool1: { label: game.i18n.localize('MTA.Arete'), value: this.actor.system.arete.value },
