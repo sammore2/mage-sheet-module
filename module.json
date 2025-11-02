@@ -1,29 +1,35 @@
 {
   "id": "mage-sheet-module",
-  "title": "Mage Sheet Module (WoD5e)",
-  "description": "Adiciona o tipo de Ator 'Mago' (baseado em Mago: A Ascensão) e sua respectiva ficha ao sistema WoD5e.",
-  "version": "1.0.0",
+  "title": "Mage: The Ascension 5e (WoD 5e)",
+  "description": "Adiciona a ficha de Mago: A Ascensão 5ª Edição ao sistema World of Darkness 5e (vtm5e). Requer o sistema vtm5e.",
+  "version": "0.1.0",
+  "authors": [
+    {
+      "name": "sammore2",
+      "url": "https://github.com/sammore2"
+    }
+  ],
   "compatibility": {
     "minimum": "13",
-    "verified": "13"
+    "verified": "13.348"
   },
-  "authors": [
-    { "name": "Rob Sammore" }
-  ],
   "relationships": {
     "systems": [
       {
         "id": "vtm5e",
         "type": "system",
-        "compatibility": {}
+        "compatibility": {
+          "minimum": "5.2.2"
+        }
       }
     ]
   },
   "esmodules": [
-    "mage-sheet-module.js"
+    "scripts/core/hooks.js",
+    "scripts/actor/mage-actor-sheet.js"
   ],
   "styles": [
-    "templates/styling/mage-styling.less"
+    "styles/mage-styling.css"
   ],
   "languages": [
     {
@@ -32,9 +38,13 @@
       "path": "lang/pt-BR/mage-pt-BR.json"
     },
     {
-      "lang": "en-US",
+      "lang": "en",
       "name": "English (US)",
       "path": "lang/en-US/mage-en-US.json"
     }
-  ]
+  ],
+  "packs": [],
+  "url": "https://github.com/sammore2/mage-sheet-module",
+  "manifest": "https://raw.githubusercontent.com/sammore2/mage-sheet-module/main/module.json",
+  "download": "https://github.com/sammore2/mage-sheet-module/archive/refs/heads/main.zip"
 }
