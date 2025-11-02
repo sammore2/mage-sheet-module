@@ -2,14 +2,17 @@
 // Mage Sheet Module - Adaptador para WoD5e (Foundry VTT)
 // ============================================================
 
-// Importa as Esferas (ajuste o caminho conforme seu projeto)
+// Importa as Esferas (caminho relativo)
 import { Spheres } from "./api/def/spheres.js";
 
-// CORREÇÃO 1: Mudar para importação nomeada { MageActorSheet }
+// Importa a ficha personalizada (caminho relativo e sintaxe correta)
 import { MageActorSheet } from "./scripts/actor/mta/mage-actor-sheet.js";
 
+// Importa a nova definição de tipo de ator
+import { MageActorType } from "./api/def/mage-actortypes.js"; 
+
 // ============================================================
-// HOOK: init
+// HOOK: init (Apenas inicialização de dados)
 // ============================================================
 Hooks.once("init", () => {
   console.log("Mage Sheet Module | Iniciando módulo Mage: The Ascension (WoD5e base)");
@@ -20,19 +23,15 @@ Hooks.once("init", () => {
   } else {
     console.warn("Mage Sheet Module | Classe Spheres não encontrada, pulando inicialização de Esferas.");
   }
+});
 
-  // CORREÇÃO FINAL DE VISIBILIDADE: Adicionar o tipo "mage" à lista principal.
-  // Usamos CONFIG.Actor.documentTypes e checamos a existência do array para evitar o erro "undefined (reading 'includes')".
-  const actorTypes = CONFIG.Actor.documentTypes; 
-  if (actorTypes && !actorTypes.includes("mage")) {
-    actorTypes.push("mage");
-    console.log("Mage Sheet Module | Tipo de ator 'mage' adicionado com sucesso.");
-  }
-
-  // Registro da ficha Mage
+// ============================================================
+// HOOK: setup (Registro de Fichas)
+// ============================================================
+Hooks.once("setup", () => {
   console.log("Mage Sheet Module | Registrando Mage Actor Sheet...");
 
-  // CORREÇÃO 2 e 3: Usando o caminho canônico e parâmetros corretos.
+  // Registro da ficha com o ID do sistema (vtm5e) e o tipo de ator (mage) corretos.
   foundry.documents.collections.Actors.registerSheet("vtm5e", MageActorSheet, { 
     types: ["mage"], // Tipo de ator: 'mage'
     makeDefault: true, 
@@ -41,40 +40,42 @@ Hooks.once("init", () => {
 });
 
 // ============================================================
-// HOOK: ready
+// HOOK: ready (Injeção na lista do sistema WoD5e e Correção de UI)
 // ============================================================
 Hooks.once("ready", async () => {
-  console.log("Mage Sheet Module | Esperando o sistema WoD5e carregar...");
+  console.log("Mage Sheet Module | Recarregamento completo do jogo concluído.");
+  
+  // SOLUÇÃO ESTRUTURAL DE VISIBILIDADE: Injetar o tipo 'mage' na lista ActorTypes.
+  if (window.WOD5E && window.WOD5E.ActorTypes) {
+      
+      // Itera sobre a nova definição e insere cada tipo ('mage') na lista do sistema.
+      for (const [key, value] of Object.entries(MageActorType)) {
+          if (!window.WOD5E.ActorTypes[key]) {
+              window.WOD5E.ActorTypes[key] = value;
+              console.log(`Mage Sheet Module | Tipo de ator '${key}' injetado na lista ActorTypes do sistema.`);
+          }
+      }
 
-  // Aguarda até que o WoD5e exponha sua API
-  const waitForWoD5E = async () => {
-    for (let i = 0; i < 20; i++) {
-      if (game?.wod5e?.api) return true;
-      await new Promise(r => setTimeout(r, 500));
-    }
-    return false;
-  };
-
-  const wod5eLoaded = await waitForWoD5E();
-
-  if (!wod5eLoaded) {
-    console.error("Mage Sheet Module | Não foi possível acessar game.wod5e.api após aguardar.");
-    return;
+      // Correção da UI: Chamamos o render(true) para forçar o redesenho.
+      ui.actors.render(true);
+      console.log("Mage Sheet Module | Forçada a re-renderização da interface de Atores. Mago deve estar visível.");
   }
-
-  console.log("Mage Sheet Module | WoD5e detectado, aplicando integração Mage...");
+  
+  // Inicialização da API (executa a lógica principal se a API existir)
   initializeMageIntegration();
 });
 
 // ============================================================
-// Mage API Integration
+// Mage API Integration (Seu código original, agora sem o erro de console)
 // ============================================================
 function initializeMageIntegration() {
   const wodAPI = game?.wod5e?.api;
   if (!wodAPI) {
-    console.error("Mage Sheet Module | Não foi possível encontrar game.wod5e.api");
+    console.error("Mage Sheet Module | game.wod5e.api não encontrada. Ignorando a integração da API.");
     return;
   }
+
+  console.log("Mage Sheet Module | WoD5e detectado, aplicando integração Mage...");
 
   // Cria namespace para Mage na API do WoD5e
   wodAPI.mage = {
