@@ -4,7 +4,8 @@
 
 Hooks.once('init', async function () {
   console.log('Mage: The Ascension 5e | 1. Registrando hook inicial.');
-  // Deixamos o init vazio de propósito. Vamos esperar o 'ready'.
+  // Não fazemos nada aqui de propósito. Vamos esperar o 'ready'.
+  // O 'ready' garante que CONFIG e game.system (game.vtm5e) estejam 100% carregados.
 });
 
 /* -------------------------------------------- */
@@ -15,9 +16,15 @@ Hooks.once('ready', async function () {
   console.log('Mage: The Ascension 5e | 2. Executando injeção de dados e registro de classes.');
 
   // --- 1. INJEÇÃO DE DADOS ---
-  // CORREÇÃO: Usar CONFIG.vtm5e (o ID do sistema do seu module.json)
-  const actorTemplate = CONFIG.vtm5e.template.Actor;
-  const itemTemplate = CONFIG.vtm5e.template.Item;
+  // CORREÇÃO DEFINITIVA: O sistema 'vtm5e' usa o namespace 'wod5e' no CONFIG.
+  const actorTemplate = CONFIG.wod5e.template.Actor;
+  const itemTemplate = CONFIG.wod5e.template.Item;
+
+  // Se 'actorTemplate' ainda for indefinido, algo está muito errado.
+  if (!actorTemplate) {
+    console.error("Mage: The Ascension 5e | ERRO CRÍTICO: Não foi possível encontrar CONFIG.wod5e.template.Actor. O sistema 'vtm5e' (base wod5e) está instalado e ativo?");
+    return;
+  }
 
   // (Baseado no seu template.json, que agora está sendo injetado no 'mortal')
   const mageDataInjection = {
@@ -47,22 +54,26 @@ Hooks.once('ready', async function () {
   itemTemplate.types.push('rote');
   itemTemplate.rote = foundry.utils.deepClone(itemTemplate.power);
   foundry.utils.mergeObject(itemTemplate.rote, { gamesystem: 'mage', arcana: '', paradoxCost: 0 });
-  CONFIG.Item.typeLabels.rote = 'MTA.Rote'; // (Certifique-se que MTA.Rote existe na sua tradução)
+  CONFIG.Item.typeLabels.rote = 'MTA.Rote';
 
   itemTemplate.types.push('focus');
   itemTemplate.focus = foundry.utils.deepClone(itemTemplate.feature);
   foundry.utils.mergeObject(itemTemplate.focus, { gamesystem: 'mage', featuretype: 'focus' });
-  CONFIG.Item.typeLabels.focus = 'MTA.Focus'; // (Certifique-se que MTA.Focus existe na sua tradução)
+  CONFIG.Item.typeLabels.focus = 'MTA.Focus';
 
   // --- 3. DEFINIÇÃO DAS CLASSES ---
   // Agora é 100% seguro estender as classes do vtm5e!
+  // Colocamos as definições DENTRO do hook 'ready'.
+
+  const RollFormulaBase = game.vtm5e.RollFormula;
+  const VampireRollDialogBase = game.vtm5e.VampireRollDialog;
+  const MortalActorSheetBase = game.vtm5e.MortalActorSheet;
 
   /**
    * MageRoll
    * Estende a RollFormula base para usar Paradoxo.
    */
-  // CORREÇÃO: Usar game.vtm5e
-  class MageRoll extends game.vtm5e.RollFormula {
+  class MageRoll extends RollFormulaBase {
     _prepareData (rollData) {
       super._prepareData(rollData);
       const paradoxDice = Math.max(0, this.hungerDice);
@@ -75,20 +86,19 @@ Hooks.once('ready', async function () {
       const paradoxFailures = paradox.filter(d => d.failure).length;
       this.successes = normalSuccesses + (normalCrits * 2) + paradoxSuccesses + (paradoxCrits * 2);
 
-      // CORREÇÃO: As localizações "WOD5E.Chat" não existem no vtm5e, 
-      // mas "VTM5E.Chat" sim. Vamos usar as do vtm5e.
+      // CORREÇÃO: Usar as localizações do VTM5E
       if (paradoxFailures > 0) {
         this.outcome = 'bestial';
-        this.outcomeLabel = game.i18n.localize('MTA.Backlash'); // (MTA.Backlash - OK)
+        this.outcomeLabel = game.i18n.localize('MTA.Backlash');
       } else if (this.successes === 0) {
         this.outcome = 'failure';
-        this.outcomeLabel = game.i18n.localize('VTM5E.Chat.Failure'); // (Corrigido)
+        this.outcomeLabel = game.i18n.localize('VTM5E.Chat.Failure');
       } else if (normalCrits > 0 || paradoxCrits > 0) {
         this.outcome = 'critical';
-        this.outcomeLabel = game.i18n.localize('VTM5E.Chat.CriticalSuccess'); // (Corrigido)
+        this.outcomeLabel = game.i18n.localize('VTM5E.Chat.CriticalSuccess');
       } else {
         this.outcome = 'success';
-        this.outcomeLabel = game.i18n.localize('VTM5E.Chat.Success'); // (Corrigido)
+        this.outcomeLabel = game.i18n.localize('VTM5E.Chat.Success');
       }
       this.rollResults = {
         normal: { rolls: this.dice, icon: this.rollIcons.normal },
@@ -99,9 +109,9 @@ Hooks.once('ready', async function () {
 
   /**
    * MageRollDialog
-   * CORREÇÃO: Estende VampireRollDialog (que é game.vtm5e.VampireRollDialog)
+   * Estende VampireRollDialog para reutilizar a lógica de "hunger".
    */
-  class MageRollDialog extends game.vtm5e.VampireRollDialog {
+  class MageRollDialog extends VampireRollDialogBase {
     static get defaultOptions () {
       return foundry.utils.mergeObject(super.defaultOptions, {
         template: 'modules/mage-sheet-module/templates/ui/mage-roll-dialog.hbs'
@@ -111,7 +121,7 @@ Hooks.once('ready', async function () {
       const data = await super.getData();
       data.hungerValue = this.actor.system.paradox.value;
       data.hungerLabel = game.i18n.localize('MTA.Paradox');
-      // data.hungerDiceIcon = 'assets/icons/dialog/vampire-dice.png'; // (Mantido, mas você pode mudar o ícone)
+      // data.hungerDiceIcon = 'assets/icons/dialog/vampire-dice.png'; // (Você pode mudar isso)
       return data;
     }
     _onRoll (event) {
@@ -135,9 +145,9 @@ Hooks.once('ready', async function () {
 
   /**
    * MageActorSheet
-   * CORREÇÃO: Estende MortalActorSheet (que é game.vtm5e.MortalActorSheet)
+   * Estende a MortalActorSheet base.
    */
-  class MageActorSheet extends game.vtm5e.MortalActorSheet {
+  class MageActorSheet extends MortalActorSheetBase {
     static get defaultOptions () {
       return foundry.utils.mergeObject(super.defaultOptions, {
         classes: ['vtm5e', 'sheet', 'actor', 'mage'], // 'vtm5e' é importante
@@ -149,7 +159,6 @@ Hooks.once('ready', async function () {
     async getData () {
       const data = await super.getData();
       this._prepareMageData(data.actor);
-      // Habilita as abas
       data.actor.system.tabs = {
         stats: true,
         spheres: true,
@@ -207,7 +216,7 @@ Hooks.once('ready', async function () {
       event.preventDefault();
       const system = this.actor.system;
       const remainingWisdom = system.wisdom.value - system.wisdom.stains;
-      const roll = new game.vtm5e.RollFormula({ // CORREÇÃO: game.vtm5e
+      const roll = new RollFormulaBase({ // CORREÇÃO: Usar a classe base
         actor: this.actor,
         pool: remainingWisdom,
         difficulty: 1,
@@ -222,11 +231,11 @@ Hooks.once('ready', async function () {
       event.preventDefault();
       const system = this.actor.system;
       const paradox = system.paradox.value;
-      const roll = new game.vtm5e.RollFormula({ // CORREÇÃO: game.vtm5e
+      const roll = new RollFormulaBase({ // CORREÇÃO: Usar a classe base
         actor: this.actor,
         pool: paradox,
         difficulty: 1,
-        rollType: 'frenzy',
+        rollType: 'frenzy', // O vtm5e chama isso de 'frenzy'
         title: game.i18n.localize('MTA.Roll.Backlash')
       });
       await roll.toMessage();
@@ -241,5 +250,5 @@ Hooks.once('ready', async function () {
     label: 'MTA.SheetTitle' // (Certifique-se que MTA.SheetTitle existe na tradução)
   });
 
-  console.log('Mage: The Ascension 5e | 3. Ficha de Mago registrada para Atores Mortais.');
+  console.log('Mage: The Ascension 5e | 3. Ficha de Mago registrada para Atores Mortais. Tudo pronto!');
 });
