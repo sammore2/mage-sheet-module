@@ -1,63 +1,82 @@
-// Importa as definições de dados (isso é seguro, não depende do Foundry)
-import { mageDataInjection, itemData } from './data-injection.js'
+/* -------------------------------------------- */
+/* HOOK: READY (A Solução Correta de Timing)    */
+/* -------------------------------------------- */
 
-// 1. Hook 'init': Usado para carregar os scripts das classes
-Hooks.once('init', async function () {
-  console.log('Mage: The Ascension 5e | 1. Hook INIT. Carregando classes...');
-
-  try {
-    // 2. IMPORTAÇÃO DINÂMICA:
-    // Isso espera o 'init' e SÓ ENTÃO carrega os arquivos.
-    // Agora, quando mage-roll.js rodar, 'game.vtm5e' VAI existir.
-    
-    // Carrega as classes de Rolagem
-    const { MageRoll, MageRollDialog } = await import('../actor/mta/scripts/mage-roll.js');
-    
-    // Carrega a classe da Ficha
-    const { MageActorSheet } = await import('../actor/mta/mage-actor-sheet.js');
-
-    // 3. REGISTRO DA FICHA:
-    // Agora que as classes foram carregadas com segurança, podemos registrar a ficha.
-    Actors.unregisterSheet('vtm5e', 'MortalActorSheet'); // Desregistra a ficha de mortal padrão
-    Actors.registerSheet('vtm5e', MageActorSheet, {
-      types: ['mortal'], // Registra sua ficha para o tipo 'mortal'
-      makeDefault: true,
-      label: 'MTA.SheetTitle' // (Use a sua chave de tradução)
-    });
-    
-    console.log('Mage: The Ascension 5e | 2. Classes e Ficha registradas.');
-
-  } catch (error) {
-    console.error('Mage: The Ascension 5e | Falha ao carregar classes no hook INIT.', error);
-  }
-});
-
-// 3. Hook 'ready': Usado para injetar dados no CONFIG (que só existe no 'ready')
+// Nós esperamos o 'ready' porque ele garante que o
+// hook 'init' do sistema vtm5e (wod5e) já terminou.
 Hooks.once('ready', async function () {
-  console.log('Mage: The Ascension 5e | 3. Hook READY. Injetando dados...');
+  console.log('Mage: The Ascension 5e | 1. Hook READY. Iniciando "core".');
 
-  // O sistema 'vtm5e' usa o namespace 'wod5e' no CONFIG
-  const actorTemplate = CONFIG.wod5e?.template?.Actor;
-  const itemTemplate = CONFIG.wod5e?.template?.Item;
+  // --- 1. Injetando o Tipo de Ator "mage" ---
+  const MageActorType = {
+    mage: {
+      label: 'MTA.Actor.Mage', //
+      templates: ['mortal'],
+      power: 'arete'
+    }
+  };
 
-  if (!actorTemplate || !itemTemplate) {
-    console.error("Mage: The Ascension 5e | ERRO CRÍTICO: Não foi possível encontrar CONFIG.wod5e.template.");
+  // Agora, no 'ready', o WOD5E VAI existir.
+  // Esta condicional (que antes dava erro) vai funcionar.
+  if (WOD5E && WOD5E.ActorTypes) {
+    Object.assign(WOD5E.ActorTypes, MageActorType);
+    console.log('Mage: The Ascension 5e | SUCESSO: Tipo "mage" injetado em WOD5E.ActorTypes.');
+  } else {
+    console.error('Mage: The Ascension 5e | FALHA: Objeto global WOD5E.ActorTypes não encontrado (mesmo no hook "ready")!');
     return;
   }
 
-  // Injeta os dados de Mago no template "mortal"
-  foundry.utils.mergeObject(actorTemplate.mortal, mageDataInjection);
+  // --- 2. Injetando o Template de Dados do "mage" ---
+  // (Dados do seu template.json)
+  const mageTemplateData = {
+    isMage: false,
+    arete: { value: 1, max: 10 },
+    paradox: { value: 0, max: 10 },
+    quintessence: { value: 0, max: 10 },
+    wisdom: { value: 7, stains: 0 },
+    frenzyActive: false,
+    spheres: {
+      correspondence: { value: 0, powers: [], visible: false },
+      entropy: { value: 0, powers: [], visible: false },
+      forces: { value: 0, powers: [], visible: false },
+      life: { value: 0, powers: [], visible: false },
+      matter: { value: 0, powers: [], visible: false },
+      mind: { value: 0, powers: [], visible: false },
+      prime: { value: 0, powers: [], visible: false },
+      spirit: { value: 0, powers: [], visible: false },
+      time: { value: 0, powers: [], visible: false }
+    }
+  }; //
 
-  // Injeta os tipos de item (Rote, Focus)
-  itemTemplate.types.push('rote');
-  itemTemplate.rote = foundry.utils.deepClone(itemTemplate.power);
-  foundry.utils.mergeObject(itemTemplate.rote, itemData.rote);
-  CONFIG.Item.typeLabels.rote = 'MTA.Rote';
+  // O 'CONFIG' (para dados de template) também está pronto no 'ready'
+  if (WOD5E && WOD5E.ActorTypes && WOD5E.ActorTypes.mage) {
+    WOD5E.ActorTypes.mage = foundry.utils.mergeObject(
+      foundry.utils.deepClone(WOD5E.ActorTypes.mortal), 
+      mageTemplateData
+    );
+    console.log('Mage: The Ascension 5e | SUCESSO: Template de dados "mage" injetado em CONFIG.wod5e.template.Actor.');
+  } else {
+     console.error('Mage: The Ascension 5e | FALHA: CONFIG.wod5e.template.Actor não encontrado!');
+     return;
+  }
 
-  itemTemplate.types.push('focus');
-  itemTemplate.focus = foundry.utils.deepClone(itemTemplate.feature);
-  foundry.utils.mergeObject(itemTemplate.focus, itemData.focus);
-  CONFIG.Item.typeLabels.focus = 'MTA.Focus';
+  // --- 3. Importando e Registrando a Ficha ---
+  // (Presumindo que você corrigiu o 'mage-roll.js' e o 'mage-actor-sheet.js'
+  // para usar os caminhos corretos que você encontrou, como WOD5E.Roll)
+  try {
+    // Importamos os arquivos dinamicamente
+    const { MageActorSheet } = await import('../actor/mta/mage-actor-sheet.js'); //
 
-  console.log('Mage: The Ascension 5e | 4. Injeção de dados completa. Módulo pronto!');
+    Actors.registerSheet('vtm5e', MageActorSheet, {
+      types: ['mage'], // Registra para o nosso novo tipo 'mage'
+      makeDefault: true,
+      label: 'MTA.Sheet.Label' // (Use sua chave de tradução)
+    });
+
+    console.log('Mage: The Ascension 5e | SUCESSO: Ficha personalizada registrada para o tipo "mage".');
+    console.log('Mage: The Ascension 5e | PLANO "DO ZERO" CONCLUÍDO.');
+    
+  } catch (error) {
+    console.error('Mage: The Ascension 5e | FALHA CRÍTICA ao importar dinamicamente a MageActorSheet. Verifique se os imports em "mage-actor-sheet.js" e "mage-roll.js" estão corretos.', error);
+  }
 });

@@ -1,183 +1,107 @@
+// Este import só vai rodar quando o 'hooks.js' mandar,
+// então o 'mage-roll.js' (corrigido abaixo) não vai quebrar.
+import { MageRollDialog } from './scripts/mage-roll.js';
+
 /**
  * MageActorSheet
- * Esta classe é a controladora da nossa Ficha de Mago.
- * Ela herda (extends) da MortalActorSheet do sistema vtm5e.
+ * PADRÃO CORRETO: extends WOD5E.api.MortalActorSheet
  */
-// Importa nossa nova classe de diálogo de rolagem
-import { MageRollDialog } from './scripts/mage-roll.js'
-
-export class MageActorSheet extends game.vtm5e.MortalActorSheet {
-  /**
-   * @override
-   * Define as opções padrão desta ficha (sheet).
-   */
+export class MageActorSheet extends WOD5E.api.MortalActorSheet {
   static get defaultOptions () {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ['vtm5e', 'sheet', 'actor', 'mage'], // Adiciona a classe 'mage' para o CSS
-      template: 'modules/mage-sheet-module/templates/actors/mage-sheet.hbs', // Caminho para o NOSSO template HTML
-      tabs: [
-        {
-          navSelector: '.sheet-tabs',
-          contentSelector: '.sheet-body',
-          initial: 'stats'
-        }
-      ]
-    })
+      classes: ['vtm5e', 'sheet', 'actor', 'mage'],
+      template: 'modules/mage-sheet-module/templates/actors/mage-sheet.hbs',
+      tabs: [{ navSelector: '.sheet-tabs', contentSelector: '.sheet-body', initial: 'stats' }]
+    });
   }
 
-  /**
-   * @override
-   * Prepara os dados para serem enviados para o template HBS.
-   * Aqui nós adicionamos nossos dados de Mago (Arete, Paradoxo, Esferas).
-   */
   async getData () {
-    // Pega todos os dados da ficha de Mortal (atributos, perícias, etc.)
-    const data = await super.getData()
-
-    // Prepara os dados específicos de Mago (que injetamos no hooks.js)
-    this._prepareMageData(data.actor)
-
-    // Define as abas que nossa ficha terá (baseado no seu template.json)
+    const data = await super.getData();
+    this._prepareMageData(data.actor);
     data.actor.system.tabs = {
       stats: true,
-      spheres: true, // Nossa nova aba!
+      spheres: true,
       equipment: true,
       features: true,
       biography: true,
       experience: true,
       notepad: true,
       settings: true
-    }
-
-    return data
+    };
+    return data;
   }
 
-  /**
-   * Prepara os dados de Mago para exibição na ficha.
-   * @param {object} actorData - Os dados do ator.
-   */
   _prepareMageData (actorData) {
-    const system = actorData.system
-
-    // Cria um array ordenado das Esferas para o HBS poder iterar (fazer um loop)
-    // Usamos as chaves que definimos no hooks.js
+    const system = actorData.system;
     system.sortedSpheres = Object.entries(system.spheres).map(([key, sphere]) => {
       return {
         key: key,
-        // Pega o nome traduzido do nosso arquivo de linguagem (ex: "MTA.Sphere.prime")
         label: game.i18n.localize(`MTA.Sphere.${key}`),
         ...sphere
-      }
-    })
+      };
+    });
   }
 
-  /**
-   * @override
-   * Adiciona os "ouvintes" de eventos (event listeners) para a ficha.
-   */
   activateListeners (html) {
-    // Ativa TODOS os listeners da ficha de Mortal (clicar em atributos, etc.)
-    super.activateListeners(html)
-
-    // Se a ficha estiver bloqueada, não adicione nossos listeners customizados
-    if (this.actor.system.locked) return
-
-    // --- ADICIONE SEUS LISTENERS DE MAGO AQUI ---
-    html.find('.roll-arete').click(this._onRollArete.bind(this))
-    html.find('.roll-paradox').click(this._onRollParadox.bind(this))
-    html.find('.roll-wisdom').click(this._onRollWisdom.bind(this))
+    super.activateListeners(html);
+    if (this.actor.system.locked) return;
+    html.find('.roll-arete').click(this._onRollArete.bind(this));
+    html.find('.roll-paradox').click(this._onRollParadox.bind(this));
+    html.find('.roll-wisdom').click(this._onRollWisdom.bind(this));
   }
 
-  /**
-   * @override
-   * Função para lidar com a rolagem de Arete (Mágica).
-   * @param {Event} event - O evento de clique.
-   */
   async _onRollArete (event) {
-    event.preventDefault()
-
-    // Prepara as opções de Esfera para o dropdown (pool2)
-    // Usamos sortedSpheres que já foi preparado no getData()
-    const sphereOptions = this.actor.system.sortedSpheres.map(s => {
-      return {
-        key: s.key,
-        label: s.label,
-        value: s.value
-      }
-    })
-
-    // Adiciona uma opção "Nenhuma" no início
+    event.preventDefault();
+    const sphereOptions = this.actor.system.sortedSpheres.map(s => ({
+      key: s.key,
+      label: s.label,
+      value: s.value
+    }));
     sphereOptions.unshift({
       key: 'none',
-      label: game.i18n.localize('WOD5E.None'),
+      label: game.i18n.localize('VTM5E.None'),
       value: 0
-    })
-
-    // Abre o nosso novo MageRollDialog
-    const dialog = new MageRollDialog({
+    });
+    
+    const dialog = new MageRollDialog({ // Classe importada
       actor: this.actor,
-      title: game.i18n.localize('MTA.Roll.Arete'), // Título da janela
-      pool1: { // Pool 1 (Arete)
-        label: game.i18n.localize('MTA.Arete'),
-        value: this.actor.system.arete.value
-      },
-      pool2: { // Pool 2 (Esfera)
-        label: game.i18n.localize('MTA.Sphere'),
-        hasSelect: true, // Diz ao dialog para usar um <select>
-        options: sphereOptions // Passa a lista de esferas
-      }
-    })
-    dialog.render(true)
+      title: game.i18n.localize('MTA.Roll.Arete'),
+      pool1: { label: game.i18n.localize('MTA.Arete'), value: this.actor.system.arete.value },
+      pool2: { label: game.i18n.localize('MTA.Sphere'), hasSelect: true, options: sphereOptions }
+    });
+    dialog.render(true);
   }
 
-  /**
-   * @override
-   * Função para lidar com a rolagem de Sabedoria (Degeneração).
-   * (Esta lógica é copiada do roll-remorse.js do vtm5e)
-   */
   async _onRollWisdom (event) {
-    event.preventDefault()
-
-    const system = this.actor.system
-    const wisdom = system.wisdom.value
-    const stains = system.wisdom.stains
-    const remainingWisdom = wisdom - stains
-
-    // Cria a fórmula da rolagem (Dados = Sabedoria restante)
-    const roll = new game.vtm5e.RollFormula({
+    event.preventDefault();
+    const system = this.actor.system;
+    const remainingWisdom = system.wisdom.value - system.wisdom.stains;
+    
+    // PADRÃO CORRETO: usa a classe base de WOD5E.api
+    const roll = new WOD5E.api.RollFormula({ 
       actor: this.actor,
       pool: remainingWisdom,
-      difficulty: 1, // Dificuldade é sempre 1
+      difficulty: 1,
       rollType: 'remorse',
       title: game.i18n.localize('MTA.Roll.Wisdom')
-    })
-
-    // Envia para o chat
-    await roll.toMessage()
-
-    // Limpa as Stains (Manchas) após a rolagem
-    this.actor.update({ 'system.wisdom.stains': 0 })
+    });
+    await roll.toMessage();
+    this.actor.update({ 'system.wisdom.stains': 0 });
   }
 
-  /**
-   * @override
-   * Função para lidar com a rolagem de Paradoxo (Backlash).
-   * (Esta lógica é copiada do frenzy-roll.js do vtm5e)
-   */
   async _onRollParadox (event) {
-    event.preventDefault()
-    
-    const system = this.actor.system
-    const paradox = system.paradox.value // Rola o total de Paradoxo atual
+    event.preventDefault();
+    const system = this.actor.system;
+    const paradox = system.paradox.value;
 
-    const roll = new game.vtm5e.RollFormula({
+    // PADRÃO CORRETO: usa a classe base de WOD5E.api
+    const roll = new WOD5E.api.RollFormula({
       actor: this.actor,
       pool: paradox,
-      difficulty: 1, // Dificuldade é sempre 1
-      rollType: 'frenzy', // Reutilizando o tipo 'frenzy' para a cor vermelha
+      difficulty: 1,
+      rollType: 'frenzy',
       title: game.i18n.localize('MTA.Roll.Backlash')
-    })
-
-    await roll.toMessage()
+    });
+    await roll.toMessage();
   }
 }
