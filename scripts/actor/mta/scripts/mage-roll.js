@@ -40,10 +40,13 @@ class MageRollDialog extends game.vtm5e.RollDialog {
     event.preventDefault()
     const form = event.currentTarget.closest('form')
 
+    // Soma Pool 1 (Arete) + Pool 2 (Esfera selecionada)
+    const combinedPool = parseInt(form.pool1.value) + parseInt(form.pool2.value)
+
     // Coleta os dados do formulário
     const rollData = {
       actor: this.actor,
-      pool: parseInt(form.pool.value),
+      pool: combinedPool, // <--- USA O POOL COMBINADO
       difficulty: parseInt(form.difficulty.value),
       // Pega os dados de Paradoxo em vez de Fome
       hungerDice: parseInt(form.hunger_dice.value),

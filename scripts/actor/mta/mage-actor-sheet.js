@@ -69,14 +69,11 @@ export class MageActorSheet extends game.vtm5e.MortalActorSheet {
         ...sphere
       }
     })
-
-    // (Aqui você pode adicionar mais preparações de dados, se necessário)
   }
 
   /**
    * @override
    * Adiciona os "ouvintes" de eventos (event listeners) para a ficha.
-   * É aqui que adicionamos a funcionalidade de clique nos botões.
    */
   activateListeners (html) {
     // Ativa TODOS os listeners da ficha de Mortal (clicar em atributos, etc.)
@@ -86,13 +83,8 @@ export class MageActorSheet extends game.vtm5e.MortalActorSheet {
     if (this.actor.system.locked) return
 
     // --- ADICIONE SEUS LISTENERS DE MAGO AQUI ---
-    // Ouvinte para rolar Arete
     html.find('.roll-arete').click(this._onRollArete.bind(this))
-
-    // Ouvinte para rolar Paradoxo
     html.find('.roll-paradox').click(this._onRollParadox.bind(this))
-
-    // Ouvinte para rolar Sabedoria (remorse)
     html.find('.roll-wisdom').click(this._onRollWisdom.bind(this))
   }
 
@@ -104,6 +96,23 @@ export class MageActorSheet extends game.vtm5e.MortalActorSheet {
   async _onRollArete (event) {
     event.preventDefault()
 
+    // Prepara as opções de Esfera para o dropdown (pool2)
+    // Usamos sortedSpheres que já foi preparado no getData()
+    const sphereOptions = this.actor.system.sortedSpheres.map(s => {
+      return {
+        key: s.key,
+        label: s.label,
+        value: s.value
+      }
+    })
+
+    // Adiciona uma opção "Nenhuma" no início
+    sphereOptions.unshift({
+      key: 'none',
+      label: game.i18n.localize('WOD5E.None'),
+      value: 0
+    })
+
     // Abre o nosso novo MageRollDialog
     const dialog = new MageRollDialog({
       actor: this.actor,
@@ -112,9 +121,10 @@ export class MageActorSheet extends game.vtm5e.MortalActorSheet {
         label: game.i18n.localize('MTA.Arete'),
         value: this.actor.system.arete.value
       },
-      pool2: { // Pool 2 (Esfera - AINDA VAMOS IMPLEMENTAR SELEÇÃO)
+      pool2: { // Pool 2 (Esfera)
         label: game.i18n.localize('MTA.Sphere'),
-        value: 0 // O ideal é o usuário selecionar a esfera
+        hasSelect: true, // Diz ao dialog para usar um <select>
+        options: sphereOptions // Passa a lista de esferas
       }
     })
     dialog.render(true)
@@ -170,4 +180,4 @@ export class MageActorSheet extends game.vtm5e.MortalActorSheet {
 
     await roll.toMessage()
   }
-} // <- Fim da classe MageActorSheet
+}
