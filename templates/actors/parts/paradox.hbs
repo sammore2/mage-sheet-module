@@ -1,10 +1,7 @@
-<div class="resource flex-group-center hunger">
-    <div class="resource-content flexrow flex-center flex-between">
-        <div class="resource-value" data-value="{{hunger.value}}" data-name="system.hunger.value">
-            <span class="resource-value-empty hunger-value" data-action="dotCounterEmpty"></span>
-            {{#numLoop hunger.max}}
-            <span class="resource-value-step hunger-value" data-action="dotCounterChange" data-index="{{this}}"></span>
-            {{/numLoop}}
-        </div>
-    </div>
+<div class="resource-counter" data-actor-id="{{actor.id}}">
+  <label class="resource-label roll-paradox">{{localize "MTA.Paradox"}}</label>
+  <div class="hunger-tracker" data-property="system.paradox">
+    {{!-- Usamos o tracker do vtm5e para "caixas" (stains) --}}
+    {{{tracker actor.system.paradox.value actor.system.paradox.max "stain"}}}
+  </div>
 </div>
