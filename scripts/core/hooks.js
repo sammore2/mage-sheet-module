@@ -1,53 +1,59 @@
-// Importa a classe da sua ficha de Mago
+// Importa a classe da sua ficha de Mago (o caminho vem do seu module.json)
 import { MageActorSheet } from '../actor/mta/mage-actor-sheet.js'
 
-// --- 1. HOOK 'INIT': INJEÇÃO DE DADOS (template.json) ---
+/* -------------------------------------------- */
+/* HOOK: INIT (INJEÇÃO DE DADOS)               */
+/* -------------------------------------------- */
+
 Hooks.once('init', async function () {
   console.log('Mage: The Ascension 5e | Inicializando dados customizados.')
 
-  // Estes são os dados que vamos injetar no Ator 'mortal'
-  // Baseado no seu trabalho anterior em template.json e spheres.js
+  // 1. Definir os dados que vamos injetar (BASEADO NA SUA ESTRUTURA)
   const mageDataInjection = {
     // Flag para sabermos que este mortal é um Mago
     isMage: false,
 
     // Traços de Mago
-    mage_traits: {
-      arete: { value: 1, max: 10 }, // Ajustado para 10, mas pode ser 5 se preferir
-      paradox: { value: 0, max: 10 },
-      wisdom: { value: 7, stains: 0 },
-      headers: {
-        tradition: '',
-        focus: '',
-        cabal: ''
-      }
+    // (Ajustei 'arete.potency' para 'arete.value' para seguir o padrão do vtm5e)
+    arete: {
+      value: 1,
+      max: 10
     },
+    paradox: {
+      value: 0,
+      max: 10
+    },
+    quintessence: {
+      value: 0,
+      max: 10
+    },
+    wisdom: {
+      value: 7,
+      stains: 0
+    },
+    frenzyActive: false, // Para o Backlash do Paradoxo
 
-    // Arcana (Esferas)
+    // Esferas (Exatamente como você definiu, com 9 esferas)
     spheres: {
-      coordenacao: { value: 0, powers: [], visible: false },
-      correspondencia: { value: 0, powers: [], visible: false },
-      entropia: { value: 0, powers: [], visible: false },
-      forcas: { value: 0, powers: [], visible: false },
-      vida: { value: 0, powers: [], visible: false },
-      materia: { value: 0, powers: [], visible: false },
-      mente: { value: 0, powers: [], visible: false },
-      primeiro: { value: 0, powers: [], visible: false },
-      espirito: { value: 0, powers: [], visible: false },
-      tempo: { value: 0, powers: [], visible: false }
+      correspondence: { value: 0, powers: [], visible: false },
+      entropy: { value: 0, powers: [], visible: false },
+      forces: { value: 0, powers: [], visible: false },
+      life: { value: 0, powers: [], visible: false },
+      matter: { value: 0, powers: [], visible: false },
+      mind: { value: 0, powers: [], visible: false },
+      prime: { value: 0, powers: [], visible: false },
+      spirit: { value: 0, powers: [], visible: false },
+      time: { value: 0, powers: [], visible: false }
     }
   }
 
-  // INJEÇÃO: Adiciona os novos dados ao template do Ator 'mortal' do sistema vtm5e
-  // Usamos game.system.template, pois CONFIG ainda pode não estar pronto
+  // 2. Injetar os dados no template do Ator 'mortal' do sistema vtm5e
   mergeObject(game.system.template.Actor.mortal, mageDataInjection)
 
-  // --- Configuração de Itens (Rote / Focus) ---
-  // Vamos clonar o tipo 'power' (de Disciplinas) para criar 'rote' (Feitiço)
-  // E clonar 'feature' para 'focus'
+  // 3. Definir novos tipos de Itens
   const itemTemplate = game.system.template.Item
 
-  // Novo tipo 'rote'
+  // Novo tipo 'rote' (clonado de 'power')
   itemTemplate.types.push('rote')
   itemTemplate.rote = foundry.utils.deepClone(itemTemplate.power)
   mergeObject(itemTemplate.rote, {
@@ -57,24 +63,27 @@ Hooks.once('init', async function () {
   })
   CONFIG.Item.typeLabels.rote = 'MTA.Rote' // Label de tradução
 
-  // Novo tipo 'focus'
+  // Novo tipo 'focus' (clonado de 'feature')
   itemTemplate.types.push('focus')
   itemTemplate.focus = foundry.utils.deepClone(itemTemplate.feature)
   mergeObject(itemTemplate.focus, {
     gamesystem: 'mage',
     featuretype: 'focus'
   })
-  CONFIG.Item.typeLabels.focus = 'MTA.Focus' // Label de tradução
+  CONFIG.Item.typeLabels.focus = 'MTA.Focus'
 })
 
-// --- 2. HOOK 'READY': REGISTRO DA FOLHA CUSTOMIZADA ---
+/* -------------------------------------------- */
+/* HOOK: READY (SUBSTITUIÇÃO DA FICHA)         */
+/* -------------------------------------------- */
+
 Hooks.once('ready', async function () {
   console.log('Mage: The Ascension 5e | Registrando folha de personagem customizada.')
 
   // Desregistra a folha de Mortal padrão do sistema vtm5e
   Actors.unregisterSheet('vtm5e', 'MortalActorSheet')
 
-  // Registra a SUA folha de Mago (MageActorSheet) como a nova folha para o tipo 'mortal'
+  // Registra a SUA folha de Mago (MageActorSheet) como a nova folha padrão para o tipo 'mortal'
   Actors.registerSheet('vtm5e', MageActorSheet, {
     types: ['mortal'], // Aplica-se apenas ao tipo 'mortal'
     makeDefault: true,

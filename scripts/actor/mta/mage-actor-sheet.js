@@ -1,155 +1,127 @@
-/* global foundry, game */
-
-// --- 1. IMPORTAÇÕES DO SISTEMA BASE (CAMINHOS ABSOLUTOS) ---
-import { 
-  prepareBiographyContext, 
-  prepareExperienceContext, 
-  prepareFeaturesContext, 
-  prepareEquipmentContext, 
-  prepareNotepadContext, 
-  prepareSettingsContext, 
-  prepareStatsContext, 
-  prepareLimitedContext 
-} from '/systems/vtm5e/system/actor/scripts/prepare-partials.js' 
-
-import { WoDActor } from '/systems/vtm5e/system/actor/wod-actor-base.js' 
-
-
-// --- 2. IMPORTAÇÕES LOCAIS (CAMINHOS RELATIVOS CORRIGIDOS) ---
-import { prepareSpheresContext, prepareAreteContext } from './scripts/prepare-partials.js' 
-import { _onAddSphere, _onSphereToChat, _onRemoveSphere, _onSelectSphere, _onSelectSpherePower } from './scripts/spheres.js'
-
-// Importando os NOVOS nomes de arquivo e função
-import { _onParadoxBacklash } from './scripts/paradox-backlash.js'
-import { _onEndParadoxBacklash } from './scripts/end-paradox-backlash.js'
-import { _onWisdomRoll } from './scripts/wisdom-roll.js'
-
-// Importando a mecânica de rolagem de Paradoxo
-import { _onParadoxCheck } from './scripts/paradox-roll.js'
-
-const { HandlebarsApplicationMixin } = foundry.applications.api
-
 /**
- * Extend the WoDActor document
- * @extends {WoDActor}
+ * MageActorSheet
+ * Esta classe é a controladora da nossa Ficha de Mago.
+ * Ela herda (extends) da MortalActorSheet do sistema vtm5e.
  */
-export class MageActorSheet extends HandlebarsApplicationMixin(WoDActor) {
-
-  // DEFINIÇÕES STATIC PARTS: Caminhos de templates explícitos
-  static PARTS = {
-    header: {
-      template: 'modules/mage-sheet-module/templates/actors/mage-sheet.hbs' 
-    },
-    tabs: {
-      template: 'systems/vtm5e/display/shared/actors/parts/tab-navigation.hbs' 
-    },
-    stats: {
-      template: 'systems/vtm5e/display/shared/actors/parts/stats.hbs' 
-    },
-    experience: {
-      template: 'systems/vtm5e/display/shared/actors/parts/experience.hbs' 
-    },
-    spheres: {
-      template: 'modules/mage-sheet-module/templates/actors/parts/spheres.hbs' 
-    },
-    arete: {
-      template: 'modules/mage-sheet-module/templates/actors/parts/arete.hbs' 
-    },
-    features: {
-      template: 'systems/vtm5e/display/shared/actors/parts/features.hbs' 
-    },
-    equipment: {
-      template: 'systems/vtm5e/display/shared/actors/parts/equipment.hbs' 
-    },
-    biography: {
-      template: 'systems/vtm5e/display/shared/actors/parts/biography.hbs' 
-    },
-    notepad: {
-      template: 'systems/vtm5e/display/shared/actors/parts/notepad.hbs' 
-    },
-    settings: {
-      template: 'systems/vtm5e/display/shared/actors/parts/actor-settings.hbs' 
-    },
-    banner: {
-      template: 'systems/vtm5e/display/shared/actors/parts/type-banner.hbs' 
-    },
-    limited: {
-      template: 'systems/vtm5e/display/shared/actors/limited-sheet.hbs' 
-    }
+export class MageActorSheet extends game.vtm5e.MortalActorSheet {
+  /**
+   * @override
+   * Define as opções padrão desta ficha (sheet).
+   */
+  static get defaultOptions () {
+    return foundry.utils.mergeObject(super.defaultOptions, {
+      classes: ['vtm5e', 'sheet', 'actor', 'mage'], // Adiciona a classe 'mage' para o CSS
+      template: 'modules/mage-sheet-module/templates/actors/mage-sheet.hbs', // Caminho para o NOSSO template HTML
+      tabs: [
+        {
+          navSelector: '.sheet-tabs',
+          contentSelector: '.sheet-body',
+          initial: 'stats'
+        }
+      ]
+    })
   }
 
-  static DEFAULT_OPTIONS = {
-    classes: ['wod5e', 'actor', 'sheet', 'mage'],
-    actions: {
-      // Ações das Esferas
-      addSphere: _onAddSphere,
-      removeSphere: _onRemoveSphere,
-      sphereChat: _onSphereToChat,
-      selectSphere: _onSelectSphere,
-      selectSpherePower: _onSelectSpherePower,
+  /**
+   * @override
+   * Prepara os dados para serem enviados para o template HBS.
+   * Aqui nós adicionamos nossos dados de Mago (Arete, Paradoxo, Esferas).
+   */
+  async getData () {
+    // Pega todos os dados da ficha de Mortal (atributos, perícias, etc.)
+    const data = await super.getData()
 
-      // --- AÇÕES DE MECÂNICA ---
-      rollWisdom: _onWisdomRoll,
-      resistBacklash: _onParadoxBacklash,
-      endBacklash: _onEndParadoxBacklash
-    }
-  }
-  
-  get template () {
-    return 'modules/mage-sheet-module/templates/actors/mage-sheet.hbs' 
-  }
-  
-  async _prepareContext (options) {
-    const context = await super._prepareContext(options)
-    const actorData = this.actor.system
+    // Prepara os dados específicos de Mago (que injetamos no hooks.js)
+    this._prepareMageData(data.actor)
 
-    context.arete = actorData.arete
-    context.paradox = actorData.paradox
-    context.quintessence = actorData.quintessence
-    context.wisdom = actorData.wisdom
-    context.frenzyActive = actorData.frenzyActive 
-
-    delete context.humanity
-    delete context.hunger
-    delete context.clan
-
-    return context
-  }
-  
-  async _preparePartContext (partId, context, options) {
-    context = { ...(await super._preparePartContext(partId, context, options)) }
-    const actor = this.actor
-
-    switch (partId) {
-      case 'stats':
-        return prepareStatsContext(context, actor)
-      case 'experience':
-        return prepareExperienceContext(context, actor)
-      case 'features':
-        return prepareFeaturesContext(context, actor)
-      case 'equipment':
-        return prepareEquipmentContext(context, actor)
-      case 'biography':
-        return prepareBiographyContext(context, actor)
-      case 'notepad':
-        return prepareNotepadContext(context, actor)
-      case 'settings':
-        return prepareSettingsContext(context, actor)
-      case 'limited':
-        return prepareLimitedContext(context, actor)
-
-      // Suas Abas Customizadas
-      case 'spheres':
-        return prepareSpheresContext(context, actor) 
-      case 'arete':
-        return prepareAreteContext(context, actor) 
+    // Define as abas que nossa ficha terá (baseado no seu template.json)
+    data.actor.system.tabs = {
+      stats: true,
+      spheres: true, // Nossa nova aba!
+      equipment: true,
+      features: true,
+      biography: true,
+      experience: true,
+      notepad: true,
+      settings: true
     }
 
-    return context
+    return data
   }
 
-  // PONTE: Intercepta a chamada de "Rouse Check" e redireciona para o nosso "Paradox Check".
-  async _onRouseCheck (actor, item, rollMode) {
-    await _onParadoxCheck(actor, item, rollMode)
+  /**
+   * Prepara os dados de Mago para exibição na ficha.
+   * @param {object} actorData - Os dados do ator.
+   */
+  _prepareMageData (actorData) {
+    const system = actorData.system
+
+    // Cria um array ordenado das Esferas para o HBS poder iterar (fazer um loop)
+    // Usamos as chaves que definimos no hooks.js
+    system.sortedSpheres = Object.entries(system.spheres).map(([key, sphere]) => {
+      return {
+        key: key,
+        // Pega o nome traduzido do nosso arquivo de linguagem (ex: "MTA.Sphere.prime")
+        label: game.i18n.localize(`MTA.Sphere.${key}`),
+        ...sphere
+      }
+    })
+
+    // (Aqui você pode adicionar mais preparações de dados, se necessário)
+  }
+
+  /**
+   * @override
+   * Adiciona os "ouvintes" de eventos (event listeners) para a ficha.
+   * É aqui que adicionamos a funcionalidade de clique nos botões.
+   */
+  activateListeners (html) {
+    // Ativa TODOS os listeners da ficha de Mortal (clicar em atributos, etc.)
+    super.activateListeners(html)
+
+    // Se a ficha estiver bloqueada, não adicione nossos listeners customizados
+    if (this.actor.system.locked) return
+
+    // --- ADICIONE SEUS LISTENERS DE MAGO AQUI ---
+    // Exemplo: Ouvinte para rolar Arete
+    html.find('.roll-arete').click(this._onRollArete.bind(this))
+
+    // Exemplo: Ouvinte para rolar Paradoxo
+    html.find('.roll-paradox').click(this._onRollParadox.bind(this))
+
+    // Exemplo: Ouvinte para rolar Sabedoria (remorse)
+    html.find('.roll-wisdom').click(this._onRollWisdom.bind(this))
+  }
+
+  /**
+   * Função para lidar com a rolagem de Arete (Mágica).
+   * @param {Event} event - O evento de clique.
+   */
+  _onRollArete (event) {
+    event.preventDefault()
+    // AINDA VAMOS IMPLEMENTAR A LÓGICA DE ROLAGEM
+    // Por agora, apenas um log:
+    console.log('Mage Module | Roll Arete Clicado!')
+    // No futuro, chamará a sua lógica de paradox-roll.js
+  }
+
+  /**
+   * Função para lidar com a rolagem de Paradoxo (Backlash).
+   * @param {Event} event - O evento de clique.
+   */
+  _onRollParadox (event) {
+    event.preventDefault()
+    console.log('Mage Module | Roll Paradox Clicado!')
+    // No futuro, chamará a sua lógica de paradox-backlash.js
+  }
+
+  /**
+   * Função para lidar com a rolagem de Sabedoria (Degeneração).
+   * @param {Event} event - O evento de clique.
+   */
+  _onRollWisdom (event) {
+    event.preventDefault()
+    console.log('Mage Module | Roll Wisdom Clicado!')
+    // No futuro, chamará a sua lógica de wisdom-roll.js
   }
 }
