@@ -1,0 +1,22 @@
+{
+  "TYPES": {
+    "Actor": {
+      "mage": "Mage"
+    },
+    "Item": {
+      "item": "Item",
+      "tradition": "Tradition",
+      "sphere": "Sphere",
+      "rote": "Rote",
+      "avatar": "Avatar",
+      "focus": "Focus",
+      "magic_resonance": "Magic Resonance",
+      "arete": "Arete",
+      "gnosis": "Gnosis"
+    }
+  },
+  "WOD5E": {
+    "Paradox": "Paradox",
+    "Backlash": "Magic Backlash"
+  }
+}
