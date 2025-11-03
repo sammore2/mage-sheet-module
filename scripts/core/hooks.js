@@ -1,100 +1,78 @@
-/* -------------------------------------------- */
-/* Importações Necessárias (Síncrono)           */
-/* -------------------------------------------- */
+/* global CONFIG, Hooks, foundry, game, ui, WOD5E */
 
-import { MageActor } from "../actor/mta/mage-actor.js";
-import { MageActorSheet } from "../actor/mta/mage-actor-sheet.js"; 
+// =======================================================================
+// IMPORTAÇÕES (Clonando a Estrutura do Main.js)
+// =======================================================================
+
+// CLASSES DE ATOR/SHEET (Do seu módulo)
+import { MageActor } from "../../actor/mta/mage-actor.js"; // Sua Classe de Ator (Estende WoDActorBase)
+import { MageActorSheet } from "../../actor/mta/mage-actor-sheet.js"; 
+
+// CLASSES DE DADOS (Você deve criá-las)
+import { MageParadoxDie, MageRoteDie } from "../../dice/splat-dice-mage.js"; 
+
+// ARQUIVOS DE DEFINIÇÃO (Do seu módulo, estendem BaseDefinitionClass)
+import { MageActorTypes } from "../../api/def/mage-actortypes.js"; 
+import { Spheres } from "../../api/def/spheres.js";            
+import { MageItemTypes } from "../../api/def/mage-itemtypes.js"; 
 
 
 /* -------------------------------------------- */
-/* HOOK: INIT (1. Registro de Classes & Validação CORE) */
+/* HOOK: INIT (Clonando o Registro de Classes e Dados do Sistema) */
 /* -------------------------------------------- */
 
 Hooks.once("init", () => {
-    // 1. REGISTRO DE CLASSE DE DOCUMENTO: Diz ao Foundry para usar a nossa classe MageActor.
-    CONFIG.Actor.documentClass = MageActor;
+    console.log('MTA5E | Hooks INIT: Iniciando Registro de Classes e Dados de Mago.');
     
-    // 2. INJEÇÃO CRÍTICA DE TIPO CORE: (Resolve o DataModelValidationError)
-    const WoDActorClass = CONFIG.Actor.documentClass;
-    if (!WoDActorClass.TYPES.includes('mage')) {
-        WoDActorClass.TYPES.push('mage');
-    }
+    // 1. REGISTRO DE CLASSE DE DOCUMENTO (Entidade Principal)
+    // Se você tem uma classe MageActor customizada, registre-a.
+    CONFIG.Actor.documentClass = MageActor; // Sobrescreve para usar a sua classe
     
-    // 3. REGISTRO DE FICHA NO FOUNDRY CORE:
+    // 2. REGISTRO DE DADOS CUSTOMIZADOS (Paralelo ao MortalDie, VampireDie, etc.)
+    // O sistema usa letras minúsculas para dados customizados. Usaremos 'p' para Paradox.
+    CONFIG.Dice.terms.p = MageParadoxDie; // Dado de Risco (Paradoxo)
+    CONFIG.Dice.terms.r = MageRoteDie;    // Dado de Força (Rotina/Arete)
+    
+    // 3. REGISTRO DA FICHA NO FOUNDRY CORE (Paralelo ao WoD5EActorDirectory)
+    // Isso deve ser feito aqui para que o tipo 'mage' apareça na criação de ator.
     foundry.documents.collections.Actors.registerSheet('mage-sheet-module', MageActorSheet, {
         types: ['mage'],
         makeDefault: true,
-        label: 'WOD5E.MTA.MageSheet'
+        label: 'TYPES.Actor.mage' // Usa a chave de tradução do seu lang.
     });
-});
 
-
-/* -------------------------------------------- */
-/* HOOK: LIBWRAPPER (2. Contorno Definitivo do Erro) */
-/* -------------------------------------------- */
-
-// Resolve o DataModelValidationError para o tipo 'mage' permanentemente.
-Hooks.once("libWrapper.ready", () => {
-    if (typeof libWrapper !== 'undefined') {
-        // Envolve o método de validação da sua classe MageActor
-        libWrapper.register('mage-sheet-module', 'MageActor.prototype.validate', function (wrapped, options) {
-            // Se o tipo for 'mage', IGNORA O SUPER e devolve TRUE.
-            if (this.type === 'mage') {
-                return true;
-            }
-            // Para todos os outros tipos, roda a validação original.
-            return wrapped(options);
-        }, 'WRAP');
+    // 4. INJEÇÃO CRÍTICA DE TIPO CORE (Garante que WoDActor aceite 'mage')
+    // A lista TYPES do WoDActor precisa ser complementada AQUI.
+    if (!CONFIG.Actor.documentClass.TYPES.includes('mage')) {
+        CONFIG.Actor.documentClass.TYPES.push('mage');
     }
 });
 
 
 /* -------------------------------------------- */
-/* HOOK: READY (3. O Bloco de Injeção que VOCÊ sabe que funciona) */
+/* HOOK: READY (Clonando a Injeção na API Global WOD5E) */
 /* -------------------------------------------- */
 
 Hooks.once("ready", async function () {
-  console.log('Mage: Hook READY iniciado. Injetando ActorType e Template.');
+    console.log('MTA5E | Hooks READY: Injetando Definições MTA5E no objeto WOD5E global.');
 
-  // 1. Injetar tipo "mage" (O SEU CÓDIGO)
-  const MageActorType = {
-    mage: {
-      label: 'WOD5E.MTA.Actor.Mage', // Padronizado para WOD5E.MTA
-      templates: ['mortal'], // Herda do Mortal para ter os dados WoD base
-      power: 'arete'
+    if (window.WOD5E) {
+        
+        // 1. INJEÇÃO DE ACTORTYPES (O bloco que você sabe que funciona)
+        // Isso injeta o tipo 'mage' na lista ActorTypes que o sistema consome.
+        const mageTypes = MageActorTypes.getList({});
+        foundry.utils.mergeObject(window.WOD5E.ActorTypes, mageTypes);
+        console.log('MTA5E | Tipo "mage" injetado em WOD5E.ActorTypes.');
+
+        
+        // 2. INJEÇÃO DE NOVAS DEFINIÇÕES (Paralelo a Disciplines, Gifts, etc.)
+        // As Esferas são a nova Disciplina do Mago.
+        window.WOD5E.Spheres = Spheres;
+        console.log('MTA5E | Definições de Esferas injetadas em WOD5E.Spheres.');
+        
+        // 3. INJEÇÃO DE NOVOS ITEMTYPES (Rotina, Foco, etc.)
+        const mageItemTypes = MageItemTypes.getList({});
+        foundry.utils.mergeObject(window.WOD5E.ItemTypes, mageItemTypes);
+        console.log('MTA5E | Novos ItemTypes injetados em WOD5E.ItemTypes.');
     }
-  };
-
-  if (WOD5E && WOD5E.ActorTypes) {
-    Object.assign(WOD5E.ActorTypes, MageActorType);
-    console.log('Mage: Tipo "mage" injetado em WOD5E.ActorTypes.');
-  }
-
-  // 2. Template de dados
-  const mageTemplateData = {
-    isMage: true,
-    arete: { value: 1, max: 10 },
-    paradox: { value: 0, max: 10 },
-    quintessence: { value: 0, max: 10 },
-    wisdom: { value: 7, stains: 0 },
-    frenzyActive: false,
-    spheres: {
-      correspondence: { value: 0, powers: [], visible: false },
-      // ... (todas as esferas)
-    },
-    system: { settings: { skillAttributeInputs: false } }
-  };
-
-  if (WOD5E.ActorTypes.mortal) { // Clona do mortal, que agora existe no ready
-    WOD5E.ActorTypes.mage = foundry.utils.mergeObject(
-      foundry.utils.deepClone(WOD5E.ActorTypes.mortal),
-      mageTemplateData
-    );
-    console.log('Mage: Template de dados aplicado no READY.');
-  }
-
-  // 3. Forçar o re-render para mostrar "Mage" no menu de criação
-  if (game.actors) {
-      game.actors.render(true);
-  }
 });

@@ -1,49 +1,25 @@
-// ===============================================
-// Mage Sheet Module - Definições das Esferas
-// ===============================================
-export class Spheres {
-  static _initializeDefinitions() {
-    console.log("Mage Sheet Module | Inicializando definições das Esferas");
+/* global Hooks */
 
-    // 🔮 Defina aqui as Esferas que existirão no jogo
-    // Isso é um exemplo, adapte à sua estrutura
-    this.definitions = {
-      forces: {
-        label: "Forces",
-        description: "Manipulação de energia, movimento e física."
-      },
-      life: {
-        label: "Life",
-        description: "Controle sobre seres vivos e biologia."
-      },
-      mind: {
-        label: "Mind",
-        description: "Percepção, pensamento e consciência."
-      },
-      matter: {
-        label: "Matter",
-        description: "Controle sobre substâncias e objetos físicos."
-      },
-      spirit: {
-        label: "Spirit",
-        description: "Comunicação e influência nos mundos espirituais."
-      },
-      correspondence: {
-        label: "Correspondence",
-        description: "Compreensão do espaço e da conexão entre locais."
-      },
-      entropy: {
-        label: "Entropy",
-        description: "Probabilidade, sorte e decadência."
-      },
-      time: {
-        label: "Time",
-        description: "Manipulação da passagem do tempo e premonição."
-      },
-      prime: {
-        label: "Prime",
-        description: "Energia primordial e essência mágica."
-      }
-    };
+// Assumindo que BaseDefinitionClass pode ser importado do sistema base
+import { BaseDefinitionClass } from '/systems/wod5e/module/api/def/base-definition-class.js' 
+
+// CLONANDO a estrutura de um arquivo de definição de Features/Disciplines
+export class Spheres extends BaseDefinitionClass {
+  static onReady () {
+    Spheres.setSortAlphabetically()
+    Spheres.initializeLabels()
   }
+
+  // 🔮 Definição das 9 Esferas (Clonando o padrão de Disciplines/Gifts)
+  static correspondence = { label: 'WOD5E.MTA.Correspondence' }
+  static entropy = { label: 'WOD5E.MTA.Entropy' }
+  static forces = { label: 'WOD5E.MTA.Forces' }
+  static life = { label: 'WOD5E.MTA.Life' }
+  static matter = { label: 'WOD5E.MTA.Matter' }
+  static mind = { label: 'WOD5E.MTA.Mind' }
+  static prime = { label: 'WOD5E.MTA.Prime' }
+  static spirit = { label: 'WOD5E.MTA.Spirit' }
+  static time = { label: 'WOD5E.MTA.Time' }
 }
+
+Hooks.once('ready', Spheres.onReady)
