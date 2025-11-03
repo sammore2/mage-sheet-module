@@ -1,7 +1,5 @@
-<div class="resource-counter" data-actor-id="{{actor.id}}">
-  <label class="resource-label roll-paradox">{{localize "MTA.Paradox"}}</label>
-  <div class="hunger-tracker" data-property="system.paradox">
-    {{!-- Usamos o tracker do vtm5e para "caixas" (stains) --}}
-    {{{tracker actor.system.paradox.value actor.system.paradox.max "stain"}}}
-  </div>
+<div class="rouse-check">
+    <button type="button" data-action="imbueEssence" title="{{localize 'WOD5E.Roll.ImbueEssence'}}">
+        {{localize 'WOD5E.Roll.ImbueEssence'}}
+    </button>
 </div>
