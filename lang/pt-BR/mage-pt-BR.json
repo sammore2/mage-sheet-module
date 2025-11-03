@@ -34,7 +34,13 @@
       "ParadoxBacklash": "Reação de Paradoxo",
       "BacklashChoiceResist": "Você está sofrendo uma Reação de Paradoxo. Você tenta resistir ou se entrega?",
       "GiveIn": "Se Entregar",
-      "ResistingBacklash": "Resistindo à Reação de Paradoxo"
+      "ResistingBacklash": "Resistindo à Reação de Paradoxo",
+      
+      "Convert": {
+        "Title": "Converter Ator para Mago",
+        "Label": "Converter para Mago",
+        "Success": "Ator convertido para Mago com sucesso. A ficha será atualizada."
+      }
     }
   }
 }

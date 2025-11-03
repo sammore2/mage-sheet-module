@@ -67,7 +67,8 @@ Hooks.once('ready', async function () {
     // Importamos os arquivos dinamicamente
     const { MageActorSheet } = await import('../actor/mta/mage-actor-sheet.js'); //
 
-    Actors.registerSheet('vtm5e', MageActorSheet, {
+// NOVO (hooks.js, linha 70)
+foundry.documents.collections.Actors.registerSheet('vtm5e', MageActorSheet, {
       types: ['mage'], // Registra para o nosso novo tipo 'mage'
       makeDefault: true,
       label: 'MTA.Sheet.Label' // (Use sua chave de tradução)

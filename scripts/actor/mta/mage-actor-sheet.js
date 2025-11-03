@@ -1,12 +1,16 @@
-// Este import só vai rodar quando o 'hooks.js' mandar,
-// então o 'mage-roll.js' (corrigido abaixo) não vai quebrar.
-import { MageRollDialog } from './scripts/mage-roll.js';
+// scripts/actor/mta/mage-actor-sheet.js
+
+// Importa a classe base da ficha de mortal (necessário para herdar corretamente)
+import { MortalActorSheet } from '/systems/vtm5e/system/actor/mortal-actor-sheet.js';
+
+/* global WOD5E, foundry, game */
 
 /**
  * MageActorSheet
- * PADRÃO CORRETO: extends WOD5E.api.MortalActorSheet
+ * Herda da ficha de mortal
  */
-export class MageActorSheet extends WOD5E.api.MortalActorSheet {
+export class MageActorSheet extends MortalActorSheet {
+  /** @override */
   static get defaultOptions () {
     return foundry.utils.mergeObject(super.defaultOptions, {
       classes: ['vtm5e', 'sheet', 'actor', 'mage'],
@@ -15,12 +19,13 @@ export class MageActorSheet extends WOD5E.api.MortalActorSheet {
     });
   }
 
+  /** @override */
   async getData () {
     const data = await super.getData();
-    this._prepareMageData(data.actor);
+    // Garante que a aba de esferas apareça na ficha
     data.actor.system.tabs = {
       stats: true,
-      spheres: true,
+      spheres: true, 
       equipment: true,
       features: true,
       biography: true,
@@ -28,80 +33,66 @@ export class MageActorSheet extends WOD5E.api.MortalActorSheet {
       notepad: true,
       settings: true
     };
+    
+    this._prepareMageData(data.actor);
+
     return data;
   }
 
+  // Prepara os dados de Arete e Esferas
   _prepareMageData (actorData) {
     const system = actorData.system;
+
+    // Converte as esferas em um array ordenado para o Handlebars
     system.sortedSpheres = Object.entries(system.spheres).map(([key, sphere]) => {
       return {
         key: key,
         label: game.i18n.localize(`MTA.Sphere.${key}`),
-        ...sphere
+        value: sphere.value
       };
     });
   }
 
+  /** @override */
   activateListeners (html) {
-    super.activateListeners(html);
-    if (this.actor.system.locked) return;
-    html.find('.roll-arete').click(this._onRollArete.bind(this));
-    html.find('.roll-paradox').click(this._onRollParadox.bind(this));
-    html.find('.roll-wisdom').click(this._onRollWisdom.bind(this));
+    super.activateListeners(html); 
+
+    // Listener customizado para a rolagem de Arete/Magia
+    html.find('.rollable[data-roll-type="arete"]').click(this._onRollArete.bind(this));
+    html.find('.rollable[data-roll-type="wisdom"]').click(this._onRollWisdom.bind(this));
   }
 
+  /**
+   * Lida com a rolagem de Magia (Arete + Esfera)
+   */
   async _onRollArete (event) {
     event.preventDefault();
-    const sphereOptions = this.actor.system.sortedSpheres.map(s => ({
-      key: s.key,
-      label: s.label,
-      value: s.value
-    }));
-    sphereOptions.unshift({
-      key: 'none',
-      label: game.i18n.localize('VTM5E.None'),
-      value: 0
-    });
-    
-    const dialog = new MageRollDialog({ // Classe importada
-      actor: this.actor,
-      title: game.i18n.localize('MTA.Roll.Arete'),
-      pool1: { label: game.i18n.localize('MTA.Arete'), value: this.actor.system.arete.value },
-      pool2: { label: game.i18n.localize('MTA.Sphere'), hasSelect: true, options: sphereOptions }
-    });
-    dialog.render(true);
+
+    // CHAMA A API OFICIAL do WOD5E
+    WOD5E.api.RollFromDataset({
+      dataset: {
+        selectDialog: true, 
+        attribute: 'arete', 
+        title: game.i18n.localize('MTA.Roll.Arete') 
+      }
+    }, this.actor);
   }
 
+  /**
+   * Lida com a rolagem de Sabedoria/Remorso
+   */
   async _onRollWisdom (event) {
     event.preventDefault();
     const system = this.actor.system;
     const remainingWisdom = system.wisdom.value - system.wisdom.stains;
     
-    // PADRÃO CORRETO: usa a classe base de WOD5E.api
-    const roll = new WOD5E.api.RollFormula({ 
+    // CHAMA A API OFICIAL do WOD5E
+    WOD5E.api.Roll({ 
+      basicDice: remainingWisdom,
       actor: this.actor,
-      pool: remainingWisdom,
-      difficulty: 1,
-      rollType: 'remorse',
-      title: game.i18n.localize('MTA.Roll.Wisdom')
+      difficulty: 1, 
+      title: game.i18n.localize('MTA.Roll.Wisdom'),
+      flavor: game.i18n.localize('MTA.Roll.WisdomFlavor')
     });
-    await roll.toMessage();
-    this.actor.update({ 'system.wisdom.stains': 0 });
-  }
-
-  async _onRollParadox (event) {
-    event.preventDefault();
-    const system = this.actor.system;
-    const paradox = system.paradox.value;
-
-    // PADRÃO CORRETO: usa a classe base de WOD5E.api
-    const roll = new WOD5E.api.RollFormula({
-      actor: this.actor,
-      pool: paradox,
-      difficulty: 1,
-      rollType: 'frenzy',
-      title: game.i18n.localize('MTA.Roll.Backlash')
-    });
-    await roll.toMessage();
   }
 }
