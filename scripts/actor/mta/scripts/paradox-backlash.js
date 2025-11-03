@@ -1,68 +1,119 @@
-/* global game, foundry, ChatMessage */
+/* global game, foundry, ChatMessage, WOD5E */
 
-// Novamente, sem imports relativos. Usamos o 'game.wod5e.WOD5eDice'.
+// Importa o motor de rolagem do sistema e modificadores (Clone do V5)
+import { getActiveModifiers } from '/systems/vtm5e/system/scripts/rolls/situational-modifiers.js'
+import { WOD5eDice } from '/systems/vtm5e/system/scripts/system-rolls.js' 
 
 /**
- * Handle rolling for a Paradox Backlash (antigo Frenzy)
+ * Lida com o Rebote de Paradoxo/Silêncio (Clone de _onFrenzyRoll).
+ * É chamado quando actor.system.frenzyActive é ativado (após falha de Sabedoria).
+ * @param {object} event - O evento de clique (passado pelo botão na ficha)
  */
 export const _onParadoxBacklash = async function (event) {
   event.preventDefault()
 
+  // Top-level variables
   const actor = this.actor
 
-  // Pergunta ao jogador se ele quer resistir
-  const content = `<p>${game.i18n.localize('WOD5E.MTA.BacklashChoiceResist')}</p>` // (Adicione esta tradução)
+  // Define o conteúdo do Diálogo (Pergunta se resiste ou cede ao Silêncio)
+  const content = `<p>
+    ${game.i18n.localize('WOD5E.MTA.BacklashChoiceResist')}
+  </p>`
 
-  const doBacklashRoll = await foundry.applications.api.DialogV2.wait({
+  // 1. Janela de Diálogo (CLONE ESTRITO V5)
+  const doResistRoll = await foundry.applications.api.DialogV2.wait({
     window: {
-      title: game.i18n.localize('WOD5E.MTA.ParadoxBacklash') // (Adicione esta tradução)
+      title: game.i18n.localize('WOD5E.MTA.ResistingBacklash')
     },
     content,
     modal: true,
     buttons: [
       {
-        label: game.i18n.localize('WOD5E.ItemsList.Resist'),
+        label: game.i18n.localize('WOD5E.VTM.Resist'), // Reutiliza Resist do V5
         action: 'resist'
       },
       {
-        label: game.i18n.localize('WOD5E.MTA.GiveIn'), // (Adicione esta tradução)
+        label: game.i18n.localize('WOD5E.MTA.GiveIn'), // Usa a nova string de Mago
         action: 'give-in'
       }
     ]
   })
 
-  if (doBacklashRoll === 'resist') {
-    // Pega os valores de Vontade e Sabedoria
-    const willpower = actor.system.willpower.value
-    const wisdom = actor.system.wisdom.value
-    
-    // Parada de dados: Vontade + (Sabedoria / 3, arredondado para baixo)
-    const dicePool = willpower + Math.floor(wisdom / 3)
+  // 2. Lógica de Resistência
+  if (doResistRoll === 'resist') {
+    const selectors = ['paradox-backlash'] // Novo seletor
 
-    game.wod5e.WOD5eDice.Roll({
-      basicDice: dicePool,
-      title: game.i18n.localize('WOD5E.MTA.ResistingBacklash'), // (Adicione esta tradução)
-      selectors: ['willpower', 'wisdom'], // (seletores corretos)
+    // Obtém Modificadores Situacionais (CLONE ESTRITO V5)
+    const activeModifiers = await getActiveModifiers({
       actor,
-      data: actor.system,
-      quickRoll: true,
+      selectors
+    })
+
+    // Rolagem: Força de Vontade (Willpower) vs. Dificuldade (Assumimos 3, clone de V5)
+    const willpower = actor.system.willpower.value
+    const basicDice = willpower + activeModifiers.totalValue
+    const difficulty = 3 // Exemplo. A dificuldade real deve ser definida pelas regras.
+
+    // Envia a rolagem (CLONE ESTRITO V5)
+    WOD5eDice.Roll({
+      basicDice,
+      title: game.i18n.localize('WOD5E.MTA.ResistingBacklash'),
+      actor,
       disableAdvancedDice: true,
-      callback: (err, rollData) => {
+      selectors,
+      quickRoll: true,
+      difficulty,
+
+      // CALLBACK (Avalia o sucesso/falha do Teste de Vontade)
+      callback: async (err, rollData) => {
         if (err) return console.log(err)
 
-        const hasSuccess = rollData.terms[0].results.some(result => result.success)
+        const hasSuccess = rollData.successes >= difficulty
 
         if (hasSuccess) {
-          // Conseguiu resistir
-          // (Podemos pular a mensagem de chat customizada)
+          // SUCESSO: Remove o Silêncio Permanente (frenzyActive)
+          await actor.update({ 'system.frenzyActive': false })
+
+          // Notificação de Sucesso (CLONE ESTRITO V5)
+          await foundry.applications.handlebars.renderTemplate('systems/vtm5e/display/ui/chat/chat-message-content.hbs', {
+            name: game.i18n.localize('WOD5E.MTA.BacklashResistSuccess'), // Nova string
+            img: 'systems/vtm5e/assets/icons/dice/vampire/success.png',
+            description: game.i18n.format('WOD5E.MTA.BacklashResistSuccessDescription', {
+              actor: actor.name
+            })
+          }).then(html => {
+            ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: html })
+          })
         } else {
-          // Falhou em resistir, entra em Backlash
-          actor.update({ 'system.frenzyActive': true }) // (Usando o boolean que definimos no template.json)
+          // FALHA: Mantém o Silêncio Permanente ativo
+          await actor.update({ 'system.frenzyActive': true })
+
+          // Notificação de Falha (CLONE ESTRITO V5)
+          await foundry.applications.handlebars.renderTemplate('systems/vtm5e/display/ui/chat/chat-message-content.hbs', {
+            name: game.i18n.localize('WOD5E.MTA.BacklashResistFailed'), // Nova string
+            img: 'systems/vtm5e/assets/icons/dice/vampire/bestial-failure.png',
+            description: game.i18n.format('WOD5E.MTA.BacklashResistFailedDescription', {
+              actor: actor.name
+            })
+          }).then(html => {
+            ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: html })
+          })
         }
       }
     })
-  } else if (doBacklashRoll === 'give-in') {
-    // Entra em Backlash automaticamente
-    actor.update({ 'system.frenzyActive': true })
+  } else if (doResistRoll === 'give-in') {
+    // 3. Lógica de Ceder (Silêncio Permanente Imediato)
+    await actor.update({ 'system.frenzyActive': true })
+
+    // Notificação de Rendição (CLONE ESTRITO V5)
+    await foundry.applications.handlebars.renderTemplate('systems/vtm5e/display/ui/chat/chat-message-content.hbs', {
+      name: game.i18n.localize('WOD5E.MTA.GiveInTitle'), // Nova string
+      img: 'systems/vtm5e/assets/icons/dice/vampire/bestial-failure.png',
+      description: game.i18n.format('WOD5E.MTA.GiveInDescription', {
+        actor: actor.name
+      })
+    }).then(html => {
+      ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: html })
+    })
   }
 }
