@@ -1,4 +1,4 @@
-{{!-- Trecho do mage-sheet.hbs que precisa ser ajustado para parecer o V5 --}}
+{{!-- Trecho do mage-sheet.hbs ajustado para ter a mesma estrutura de V5 e corrigir a referência do item Tradition --}}
 
 <header class="actor-header" {{#if headerbg}} style="background: url({{headerbg}}) center;"{{/if}}>
     <div class="header-fields">
@@ -9,7 +9,6 @@
             {{> "systems/vtm5e/display/shared/actors/parts/willpower.hbs"}}
         </div>
     </div>
-    <!-- Middle of the header -->
     {{> "systems/vtm5e/display/shared/actors/parts/header-profile.hbs"}}
     <div class="header-fields">
         <div class="header-fields-right">
@@ -23,11 +22,13 @@
                                     <span class="data-item nowrap">
                                         {{tradition.name}}
                                     </span>
-                                    <a class="edit-data-item" data-action="itemEdit" data-item-id="{{clan.id}}">
+                                    <a class="edit-data-item" data-action="itemEdit" data-item-id="{{tradition.id}}"> 
+                                        {{!-- CORRIGIDO: de clan.id para tradition.id --}}
                                         <i class="fa-solid fa-pen-nib"></i>
                                     </a>
                                 {{else}}
-                                    <a class="add-data-item" data-action="createItem" data-type="clan">
+                                    <a class="add-data-item" data-action="createItem" data-type="tradition"> 
+                                        {{!-- CORRIGIDO: de data-type="clan" para data-type="tradition" --}}
                                         <i class="fa-solid fa-plus"></i>
                                     </a>
                                 {{/if}}
@@ -39,7 +40,7 @@
                 <div class="flexcol field-section">
                     <label class="resource-label field-header">{{localize "WOD5E.MTA.Paradox"}}</label>
                     <div class="flexrow">
-						{{> "modules/mage-sheet-module/templates/actors/parts/paradox-level.hbs"}}
+                        {{> "modules/mage-sheet-module/templates/actors/parts/paradox-level.hbs"}}
                         {{> "modules/mage-sheet-module/templates/actors/parts/paradox.hbs"}}
                     </div>
                 </div>
