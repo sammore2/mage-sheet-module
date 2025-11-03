@@ -1,9 +1,9 @@
 /* global game, WOD5E */
 
 // Importa o motor de rolagem do sistema
-import { WOD5eDice } from '/systems/wod5e/module/scripts/system-rolls.js' 
+import { WOD5eDice } from '/systems/vtm5e/system/scripts/system-rolls.js' 
 // Importa o script que verifica modificadores (situational-modifiers.js)
-import { getActiveModifiers } from '/systems/wod5e/module/scripts/rolls/situational-modifiers.js' 
+import { getActiveModifiers } from '/systems/vtm5e/system/scripts/rolls/situational-modifiers.js' 
 // Importa suas funções de Arete (do seu módulo)
 import { getAreteValues, areteToRouse } from './arete.js' 
 // Importa a função de aumento de Paradoxo que você criou

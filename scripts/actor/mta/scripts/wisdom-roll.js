@@ -1,51 +1,61 @@
 /* global game, foundry, ChatMessage */
 
-// Nota: Removemos o 'import { WOD5eDice } from ...'
-// Vamos usar a função global 'game.wod5e.WOD5eDice' para evitar erros 404.
+// Importa o motor de rolagem do sistema
+import { WOD5eDice } from '/systems/vtm5e/system/scripts/system-rolls.js' 
 
 /**
- * Handle rolling a Wisdom check (antigo Remorse)
+ * Lida com o Teste de Sabedoria (Clone do _onRemorseRoll)
+ * Se falhar, o Mago entra em Silêncio Permanente (frenzyActive V5)
+ * @param {object} event - O evento de clique (mantido do template V5)
  */
 export const _onWisdomRoll = async function (event) {
   event.preventDefault()
 
   // Top-level variables
-  const actor = this.actor
+  const actor = this.actor // Assumimos que a ficha passa 'this.actor'
 
-  // Pega os dados de Sabedoria (do template.json)
-  const wisdom = actor.system.wisdom.value
-  const stains = actor.system.wisdom.stains
-  
-  // A parada de dados é (10 - Sabedoria - Máculas), no mínimo 1
-  const dicePool = Math.max((10 - wisdom - stains), 1)
+  // Secondary variables (Substituindo Humanity por Wisdom)
+  const wisdom = actor.system.humanity.value // O valor de Sabedoria (usando o campo V5 'humanity')
+  const stain = actor.system.humanity.stains // O valor das Máculas (usando o campo V5 'stains')
+  // Cálculo do Dice Pool (CLONE ESTRITO do V5)
+  const dicePool = Math.max((10 - wisdom - stain), 1)
 
-  // Rola os dados
-  game.wod5e.WOD5eDice.Roll({
+  // Envia a rolagem para o sistema (CLONE ESTRITO do V5)
+  WOD5eDice.Roll({
     basicDice: dicePool,
-    title: game.i18n.localize('WOD5E.MTA.RollingWisdom'), // (Adicione esta tradução)
-    selectors: ['wisdom'], // (Usando o seletor de Sabedoria)
+    title: game.i18n.localize('WOD5E.MTA.RollingWisdom'), // String Mago
+    selectors: ['wisdom'], // Novo seletor para modificadores
     actor,
     data: actor.system,
     quickRoll: true,
     disableAdvancedDice: true,
+    
+    // CALLBACK (CLONE ESTRITO do V5, mas com lógica Mago)
     callback: async (err, rollData) => {
-      if (err) console.log('Mage Sheet Module | ' + err)
+      if (err) console.log('Mage: The Ascension 5e | ' + err)
 
       const hasSuccess = rollData.terms[0].results.some(result => result.success)
 
-      // Se tiver sucesso, limpa as Máculas
+      // Se houver sucesso, as Máculas são zeradas (Mago zera as Stains)
       if (hasSuccess) {
-        await actor.update({ 'system.wisdom.stains': 0 })
+        await actor.update({ 'system.humanity.stains': 0 })
       } else {
-        // Se falhar, perde 1 de Sabedoria e limpa as Máculas
+        // LÓGICA DE SILÊNCIO PERMANENTE (Substitui a redução de Humanidade)
         await actor.update({
-          'system.wisdom.value': Math.max(wisdom - 1, 0),
-          'system.wisdom.stains': 0
+          // Zera as Máculas, mas ativa o Silêncio Permanente (Assumindo que frenzyActive é o campo de Status V5)
+          'system.humanity.stains': 0,
+          'system.frenzyActive': true // Usando a chave V5 'frenzyActive' para o Silêncio
         })
 
-        // (Opcional: Envia uma mensagem de falha no chat.
-        // O chat da rolagem já vai mostrar a falha, então podemos pular isso
-        // para evitar depender de templates .hbs do vtm5e)
+        // Notificação de Falha de Sabedoria (CLONE ESTRITO V5)
+        await foundry.applications.handlebars.renderTemplate('systems/vtm5e/display/ui/chat/chat-message-content.hbs', {
+          name: game.i18n.localize('WOD5E.MTA.WisdomFailed'), // Nova string
+          img: 'systems/vtm5e/assets/icons/dice/vampire/bestial-failure.png',
+          description: game.i18n.localize('WOD5E.MTA.WisdomFailedDescription') // Nova string
+        }).then(html => {
+          const message = ChatMessage.applyRollMode({ speaker: ChatMessage.getSpeaker({ actor }), content: html }, rollMode)
+          ChatMessage.create(message)
+        })
       }
     }
   })
