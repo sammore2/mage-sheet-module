@@ -18,5 +18,7 @@
   "WOD5E": {
     "Paradox": "Paradoxo",
     "Backlash": "Rebote Mágico",
+	"ParadoxFull1": "Limite de Paradoxo Atingido",
+	"ParadoxFull2": "O Paradoxo não pode aumentar mais."
   }
 }
