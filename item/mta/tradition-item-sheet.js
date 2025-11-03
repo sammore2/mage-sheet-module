@@ -1,10 +1,10 @@
 /* global foundry */
 
 // Preparation functions
-import { prepareDescriptionContext, prepareModifiersContext, prepareItemSettingsContext } from '../scripts/prepare-partials-mta.js'
-import { prepareBaneContext } from '../scripts/prepare-partials-mta.js' // Usado pelo ClanItemSheet
+import { prepareDescriptionContext, prepareModifiersContext, prepareItemSettingsContext } from '../../scripts/actor/mta/scripts/prepare-partials.js'
+import { prepareBaneContext } from '../../scripts/actor/mta/scripts/prepare-partials.js' // Usado pelo ClanItemSheet
 // Base item sheet a estender
-import { WoDItem } from '../wod-item-base.js'
+import { WoDItem } from '/systems/vtm5e/system/item/wod-item-base.js'
 // Mixin
 const { HandlebarsApplicationMixin } = foundry.applications.api
 

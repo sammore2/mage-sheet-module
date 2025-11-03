@@ -1,9 +1,9 @@
 /* global foundry */
 
 // Preparation functions - Assumindo que você criará este arquivo
-import { prepareDescriptionContext, prepareMacroContext, prepareModifiersContext, prepareItemSettingsContext } from '../scripts/prepare-partials-mta.js'
+import { prepareDescriptionContext, prepareMacroContext, prepareModifiersContext, prepareItemSettingsContext } from '../../../scripts/actor/mta/scripts/prepare-partials.js'
 // Base item sheet a estender
-import { WoDItem } from '../wod-item-base.js' // Assumindo importação do sistema base
+import { WoDItem } from '/systems/vtm5e/system/item/wod-item-base.js/wod-item-base.js' // Assumindo importação do sistema base
 // Mixin
 const { HandlebarsApplicationMixin } = foundry.applications.api
 

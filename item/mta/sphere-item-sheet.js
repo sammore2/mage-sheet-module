@@ -2,7 +2,7 @@
 
 // Preparation functions (Clonando o caminho relativo)
 // Estes scripts de preparacao (prepareXContext) devem ser clonados/adaptados no seu módulo
-import { prepareDescriptionContext, prepareDicepoolContext, prepareMacroContext, prepareModifiersContext, prepareItemSettingsContext } from '../../scripts/prepare-partials.js'
+import { prepareDescriptionContext, prepareDicepoolContext, prepareMacroContext, prepareModifiersContext, prepareItemSettingsContext } from '../../scripts/actor/mta/scripts/prepare-partials.js'
 // Importa a sua definição de Esferas (para o dropdown)
 import { Spheres } from '../../api/def/spheres.js' // Sua nova definição de Esferas (WOD5E.Spheres)
 // Base item sheet to extend from

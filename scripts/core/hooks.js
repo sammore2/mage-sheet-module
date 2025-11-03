@@ -5,8 +5,8 @@
 // =======================================================================
 
 // CLASSES DE ATOR/SHEET (Do seu módulo)
-import { MageActor } from "../../actor/mta/mage-actor.js"; // Sua Classe de Ator (Estende WoDActorBase)
-import { MageActorSheet } from "../../actor/mta/mage-actor-sheet.js"; 
+import { MageActor } from "../../scripts/actor/mta/mage-actor.js"; // Sua Classe de Ator (Estende WoDActorBase)
+import { MageActorSheet } from "../../scripts/actor/mta/mage-actor-sheet.js"; 
 
 // CLASSES DE DADOS (Você deve criá-las)
 import { MageParadoxDie, MageRoteDie } from "../../dice/splat-dice-mage.js"; 

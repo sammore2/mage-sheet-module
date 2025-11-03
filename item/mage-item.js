@@ -1,7 +1,7 @@
 /* global Item, Hooks, WOD5E */
 
 // Importa a classe de Item base do sistema WoD5e
-import { WoDItem } from "/systems/wod5e/module/item/item.js"; 
+import { WoDItem } from "/systems/vtm5e/system/item/item.js"; 
 
 /**
  * Estende a classe de dados base do Item do WoD5e.

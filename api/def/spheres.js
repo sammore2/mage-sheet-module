@@ -1,7 +1,7 @@
 /* global Hooks */
 
 // Assumindo que BaseDefinitionClass pode ser importado do sistema base
-import { BaseDefinitionClass } from '/systems/wod5e/module/api/def/base-definition-class.js' 
+import { BaseDefinitionClass } from '/systems/vtm5e/system/api/def/base-definition-class.js' 
 
 // CLONANDO a estrutura de um arquivo de definição de Features/Disciplines
 export class Spheres extends BaseDefinitionClass {

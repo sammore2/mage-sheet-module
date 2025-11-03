@@ -1,6 +1,6 @@
 /* global foundry */
 
-// Importa a classe de Ficha Base do WoD5e
+// Importa a classe de Ficha Base do WoD5e (wod-item-base.js)
 import { WoDItem } from "/systems/vtm5e/system/item/wod-item-base.js"; 
 
 /**
@@ -9,7 +9,9 @@ import { WoDItem } from "/systems/vtm5e/system/item/wod-item-base.js";
  * @extends {WoDItem}
  */
 export class MageItemSheetBase extends WoDItem {
-  // O construtor, DEFAULT_OPTIONS e a maioria dos métodos são herdados.
+  
+  // O DEFAULT_OPTIONS, PARTS e TABS são definidos na classe que o estende (SphereItemSheet, etc.), 
+  // mas esta classe define a lógica de estilo.
 
   /**
    * @override
@@ -24,11 +26,8 @@ export class MageItemSheetBase extends WoDItem {
     
     if (gamesystem === 'mage') {
       // Remove todas as outras classes de splat e adiciona a sua.
-      // O clone V5 usa: html.classList.remove('hunter', 'werewolf', 'vampire', 'mortal');
       html.classList.remove('vampire', 'hunter', 'werewolf', 'mortal'); 
       html.classList.add('mage'); 
     }
   }
-
-  // O restante dos métodos (onSubmit, activateListeners) são herdados.
 }

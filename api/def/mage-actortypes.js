@@ -1,9 +1,9 @@
 /* global Hooks */
 
 // Assumindo que BaseDefinitionClass pode ser importado do sistema base
-import { BaseDefinitionClass } from '/systems/wod5e/module/api/def/base-definition-class.js' 
+import { BaseDefinitionClass } from '/systems/vtm5e/system/api/def/base-definition-class.js' 
 // Importação da Sheet (para registro no Foundry)
-import { MageActorSheet } from "../../actor/mta/mage-actor-sheet.js"; 
+import { MageActorSheet } from "../../scripts/actor/mta/mage-actor-sheet.js"; 
 
 export class MageActorTypes extends BaseDefinitionClass {
   // Clonando o método estático do sistema base
