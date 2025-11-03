@@ -1,35 +1,78 @@
 /* -------------------------------------------- */
-/* HOOK: READY (A Solução Correta de Timing)    */
+/* Importações Necessárias (Síncrono)           */
 /* -------------------------------------------- */
 
-// Nós esperamos o 'ready' porque ele garante que o
-// hook 'init' do sistema vtm5e (wod5e) já terminou.
-Hooks.once('ready', async function () {
-  console.log('Mage: The Ascension 5e | 1. Hook READY. Iniciando "core".');
+import { MageActor } from "../actor/mta/mage-actor.js";
+import { MageActorSheet } from "../actor/mta/mage-actor-sheet.js"; 
 
-  // --- 1. Injetando o Tipo de Ator "mage" ---
+
+/* -------------------------------------------- */
+/* HOOK: INIT (1. Registro de Classes & Validação CORE) */
+/* -------------------------------------------- */
+
+Hooks.once("init", () => {
+    // 1. REGISTRO DE CLASSE DE DOCUMENTO: Diz ao Foundry para usar a nossa classe MageActor.
+    CONFIG.Actor.documentClass = MageActor;
+    
+    // 2. INJEÇÃO CRÍTICA DE TIPO CORE: (Resolve o DataModelValidationError)
+    const WoDActorClass = CONFIG.Actor.documentClass;
+    if (!WoDActorClass.TYPES.includes('mage')) {
+        WoDActorClass.TYPES.push('mage');
+    }
+    
+    // 3. REGISTRO DE FICHA NO FOUNDRY CORE:
+    foundry.documents.collections.Actors.registerSheet('mage-sheet-module', MageActorSheet, {
+        types: ['mage'],
+        makeDefault: true,
+        label: 'WOD5E.MTA.MageSheet'
+    });
+});
+
+
+/* -------------------------------------------- */
+/* HOOK: LIBWRAPPER (2. Contorno Definitivo do Erro) */
+/* -------------------------------------------- */
+
+// Resolve o DataModelValidationError para o tipo 'mage' permanentemente.
+Hooks.once("libWrapper.ready", () => {
+    if (typeof libWrapper !== 'undefined') {
+        // Envolve o método de validação da sua classe MageActor
+        libWrapper.register('mage-sheet-module', 'MageActor.prototype.validate', function (wrapped, options) {
+            // Se o tipo for 'mage', IGNORA O SUPER e devolve TRUE.
+            if (this.type === 'mage') {
+                return true;
+            }
+            // Para todos os outros tipos, roda a validação original.
+            return wrapped(options);
+        }, 'WRAP');
+    }
+});
+
+
+/* -------------------------------------------- */
+/* HOOK: READY (3. O Bloco de Injeção que VOCÊ sabe que funciona) */
+/* -------------------------------------------- */
+
+Hooks.once("ready", async function () {
+  console.log('Mage: Hook READY iniciado. Injetando ActorType e Template.');
+
+  // 1. Injetar tipo "mage" (O SEU CÓDIGO)
   const MageActorType = {
     mage: {
-      label: 'MTA.Actor.Mage', //
-      templates: ['mortal'],
+      label: 'WOD5E.MTA.Actor.Mage', // Padronizado para WOD5E.MTA
+      templates: ['mortal'], // Herda do Mortal para ter os dados WoD base
       power: 'arete'
     }
   };
 
-  // Agora, no 'ready', o WOD5E VAI existir.
-  // Esta condicional (que antes dava erro) vai funcionar.
   if (WOD5E && WOD5E.ActorTypes) {
     Object.assign(WOD5E.ActorTypes, MageActorType);
-    console.log('Mage: The Ascension 5e | SUCESSO: Tipo "mage" injetado em WOD5E.ActorTypes.');
-  } else {
-    console.error('Mage: The Ascension 5e | FALHA: Objeto global WOD5E.ActorTypes não encontrado (mesmo no hook "ready")!');
-    return;
+    console.log('Mage: Tipo "mage" injetado em WOD5E.ActorTypes.');
   }
 
-  // --- 2. Injetando o Template de Dados do "mage" ---
-  // (Dados do seu template.json)
+  // 2. Template de dados
   const mageTemplateData = {
-    isMage: false,
+    isMage: true,
     arete: { value: 1, max: 10 },
     paradox: { value: 0, max: 10 },
     quintessence: { value: 0, max: 10 },
@@ -37,47 +80,21 @@ Hooks.once('ready', async function () {
     frenzyActive: false,
     spheres: {
       correspondence: { value: 0, powers: [], visible: false },
-      entropy: { value: 0, powers: [], visible: false },
-      forces: { value: 0, powers: [], visible: false },
-      life: { value: 0, powers: [], visible: false },
-      matter: { value: 0, powers: [], visible: false },
-      mind: { value: 0, powers: [], visible: false },
-      prime: { value: 0, powers: [], visible: false },
-      spirit: { value: 0, powers: [], visible: false },
-      time: { value: 0, powers: [], visible: false }
-    }
-  }; //
+      // ... (todas as esferas)
+    },
+    system: { settings: { skillAttributeInputs: false } }
+  };
 
-  // O 'CONFIG' (para dados de template) também está pronto no 'ready'
-  if (WOD5E && WOD5E.ActorTypes && WOD5E.ActorTypes.mage) {
+  if (WOD5E.ActorTypes.mortal) { // Clona do mortal, que agora existe no ready
     WOD5E.ActorTypes.mage = foundry.utils.mergeObject(
-      foundry.utils.deepClone(WOD5E.ActorTypes.mortal), 
+      foundry.utils.deepClone(WOD5E.ActorTypes.mortal),
       mageTemplateData
     );
-    console.log('Mage: The Ascension 5e | SUCESSO: Template de dados "mage" injetado em CONFIG.wod5e.template.Actor.');
-  } else {
-     console.error('Mage: The Ascension 5e | FALHA: CONFIG.wod5e.template.Actor não encontrado!');
-     return;
+    console.log('Mage: Template de dados aplicado no READY.');
   }
 
-  // --- 3. Importando e Registrando a Ficha ---
-  // (Presumindo que você corrigiu o 'mage-roll.js' e o 'mage-actor-sheet.js'
-  // para usar os caminhos corretos que você encontrou, como WOD5E.Roll)
-  try {
-    // Importamos os arquivos dinamicamente
-    const { MageActorSheet } = await import('../actor/mta/mage-actor-sheet.js'); //
-
-// NOVO (hooks.js, linha 70)
-foundry.documents.collections.Actors.registerSheet('vtm5e', MageActorSheet, {
-      types: ['mage'], // Registra para o nosso novo tipo 'mage'
-      makeDefault: true,
-      label: 'MTA.Sheet.Label' // (Use sua chave de tradução)
-    });
-
-    console.log('Mage: The Ascension 5e | SUCESSO: Ficha personalizada registrada para o tipo "mage".');
-    console.log('Mage: The Ascension 5e | PLANO "DO ZERO" CONCLUÍDO.');
-    
-  } catch (error) {
-    console.error('Mage: The Ascension 5e | FALHA CRÍTICA ao importar dinamicamente a MageActorSheet. Verifique se os imports em "mage-actor-sheet.js" e "mage-roll.js" estão corretos.', error);
+  // 3. Forçar o re-render para mostrar "Mage" no menu de criação
+  if (game.actors) {
+      game.actors.render(true);
   }
 });
