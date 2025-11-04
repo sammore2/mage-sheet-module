@@ -26,21 +26,32 @@
   },
    "esmodules": [
     "scripts/core/hooks.js"
+	"scripts/core/data-injection.js"
   ],
   "styles": [
     "templates/styling/mage-styling.less"
   ],
-  "languages": [
+"languages": [
     {
       "lang": "pt-BR",
-      "name": "Português (Brasil)",
-      "path": "lang/pt-BR/mage-pt-BR.json"
+      "name": "Português (Brasil) (Mago 5e) - Splat",
+      "path": "lang/pt-BR/mage-pt-BR.json" 
+    },
+    {
+      "lang": "pt-BR",
+      "name": "Português (Brasil) (Mago 5e) - Core",
+      "path": "lang/pt-BR/mage-core-pt-BR.json" 
+    },	
+    {
+      "lang": "en",
+      "name": "English (Mage 5e) - Splat",
+      "path": "lang/en-US/mage-en-US.json" 
     },
     {
       "lang": "en",
-      "name": "English (US)",
-      "path": "lang/en-US/mage-en-US.json"
-    }
+      "name": "English (Mage 5e) - Core",
+      "path": "lang/en-US/mage-core-en-US.json" 
+    }	
   ],
   "packs": [],
   "url": "https://github.com/sammore2/mage-sheet-module",

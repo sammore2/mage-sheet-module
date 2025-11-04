@@ -7,7 +7,7 @@ import { getActiveModifiers } from '/systems/vtm5e/system/scripts/rolls/situatio
 // Importa suas funções de Arete (do seu módulo)
 import { getAreteValues, areteToRouse } from './arete.js' 
 // Importa a função de aumento de Paradoxo que você criou
-import { _increaseParadox } from '../../../scripts/rolls/increase-paradox.js' 
+import { _increaseParadox } from '../../../../scripts/rolls/increase-paradox.js' 
 
 
 /**

@@ -4,11 +4,12 @@
 // Importa a classe WoDActor do sistema base (para estender)
 import { WoDActor } from "/systems/vtm5e/system/actor/wod-actor-base.js"; 
 
+
 // Importa todas as funções de lógica de Mago
-import { _onParadoxCheck } from '../../scripts/actor/mta/scripts/paradox-roll.js' 
-import { _onWisdomRoll } from '../../scripts/actor/mta/scripts/wisdom-roll.js' 
-import { _onParadoxBacklash } from '../../scripts/actor/mta/scripts/paradox-backlash.js' 
-import { _onEndParadoxBacklash } from '../../scripts/actor/mta/scripts/end-paradox-backlash.js' 
+import { _onParadoxCheck } from './scripts/paradox-roll.js' 
+import { _onWisdomRoll } from './scripts/wisdom-roll.js' 
+import { _onParadoxBacklash } from './scripts/paradox-backlash.js' 
+import { _onEndParadoxBacklash } from './scripts/end-paradox-backlash.js'
 
 
 /**
